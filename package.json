@@ -17,6 +17,7 @@
     "commander": "^2.3.0",
     "jsdom": "^1.0.3",
     "requirejs": "^2.1.15",
-    "underscore": "^1.7.0"
+    "underscore": "^1.7.0",
+    "xhr2": "^0.1.0"
   }
 }
