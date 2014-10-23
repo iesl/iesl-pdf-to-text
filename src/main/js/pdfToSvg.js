@@ -5,7 +5,7 @@ if (typeof define !== 'function') {
 define(function(require) {
 
     var fs = require('fs');
-    
+
     // Dumps svg outputs to a folder called svgdump
     function writeToFile(svgdump, pageNum, pdfPath) {
         var name = getFileNameFromPath(pdfPath);
@@ -37,20 +37,35 @@ define(function(require) {
     global.PDFJS = {};
     global.DOMParser = require('./node/domparsermock.js').DOMParserMock;
 
-    
-    
+
+
     //require('../../../../pdf.js-versions/pdf.js-iesl/build/singlefile/build/pdf.combined.js');
     function renderPdfToSVG(filename, data) {
 
         var jsdom = require('jsdom');
 
-        jsdom.env('<p></p>', function (errors, window) {
-            
+        var PRJ_ROOT = process.cwd();
+        
+        jsdom.env('<p></p>', [
+        ], function (errors, window) {
+
             global.document = window.document;
             require('./pdf.combined.js');
+
+            //require(PRJ_ROOT+'/pdf.js/src/shared/util.js');
+            //require(PRJ_ROOT+'/pdf.js/src/display/api.js');
+            //require(PRJ_ROOT+'/pdf.js/src/display/metadata.js');
+            //require(PRJ_ROOT+'/pdf.js/src/display/canvas.js');
+            //require(PRJ_ROOT+'/pdf.js/src/display/webgl.js');
+            //require(PRJ_ROOT+'/pdf.js/src/display/pattern_helper.js');
+            //require(PRJ_ROOT+'/pdf.js/src/display/font_loader.js');
+            //require(PRJ_ROOT+'/pdf.js/src/display/annotation_helper.js');
+            //require(PRJ_ROOT+'/pdf.js/src/display/svg.js');
+            //require(PRJ_ROOT+'/pdf.js/src/shared/worker_loader.js');
+
             require('./node/domstubs.js');
 
-            
+
             PDFJS.getDocument(data).then(function (doc) {
                 var numPages = doc.numPages;
                 console.log('# Document Loaded');
@@ -64,7 +79,7 @@ define(function(require) {
                         var viewport = page.getViewport(1.0 /* scale */);
                         console.log('Size: ' + viewport.width + 'x' + viewport.height);
                         console.log();
-                        
+
                         return page.getOperatorList().then(function (opList) {
                             var svgGfx = new PDFJS.SVGGraphics(page.commonObjs, page.objs);
                             svgGfx.embedFonts = true;
@@ -75,7 +90,7 @@ define(function(require) {
                         });
                     });
                 };
-                
+
                 for (var i = 1; i <= numPages; i++) {
                     lastPromise = lastPromise.then(loadPage.bind(null, i));
                 }
@@ -94,4 +109,3 @@ define(function(require) {
     };
 
 });
-
