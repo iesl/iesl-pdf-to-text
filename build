@@ -1,0 +1,8 @@
+#!/bin/bash
+
+pushd .
+cd pdf.js && node make singlefile
+popd
+cp pdf.js/build/singlefile/build/pdf.combined.js ./src/main/js/
+
+ 
