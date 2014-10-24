@@ -16,8 +16,6 @@ Based on Mozilla's pdf.js.
        >supported by a grant provided by East Piedmont University (U</svg:tspan>
 ```
 
-
-
 * Annotation format (M="...")
 
 
