@@ -37,7 +37,7 @@
                         " >References</svg:tspan>
 
           <svg:tspan font-family="g_font_3" font-size="10.9091px" y="100.6797" x="0 3.0024319566 8.4024364566 12.9799820894 14.5247979222 22.563612323 27.7412730013 29.8862038797 37.3310724837 43.4559315878 48.8559360878 51.8583680444 58.8977866378 61.0935648313 66.4935693313 72.6184284353 80.8135134464 82.9431388574 88.5843762857 93.8219988322 96.0268915787 104.0657059795 110.1905650836 114.5057670432 118.8209446756 123.6161231443 126.6185551008 129.6209870574" fill="rgb(0,0,0)"
-                     M="| |    f$ L....     f$ L...... | {on: author.token, labels: {name: {first: f, middle: m, last: l}}}
+                     M="| |    f$ L....     f$ L...... | {on: author/token, labels: {name: {first: f, middle: m, last: l}}}
                         | |    a~ $         a~ $     $ | {labels: {author: a}, on: authors.token}
                         | |    a~ $         a~ $     $ | {labels: {authorstype: {editor: e, pi: p}}, on: authors}
                         | |r~$ a~ ~.... _.. ~. $...... | {type: field, on: reference.token, labels: {r: refmarker, a: authors}}
