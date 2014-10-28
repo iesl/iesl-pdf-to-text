@@ -10,34 +10,48 @@ import org.jdom2.filter.ElementFilter
 import org.jdom2.Element
 
 import scala.collection.JavaConversions.iterableAsScalaIterable 
+import scala.collection.immutable.IntMap
 
 import org.jdom2.output.Format
 import org.jdom2.output.XMLOutputter
 import org.jdom2.output.LineSeparator
 
-class BioBlock(text: String, startIndex: Int) {
-
-  val next = startIndex + text.size
-
-  val height = (next - 1).toString.size
-
-  val bottomRuler = "| |"+(startIndex until next).map(_ % 10).mkString("")+"|"
-  val topRulerList = (2 to height).map(level => {
-    "| |"+(startIndex until next).map(i => {
-      if (i == startIndex || (i % 10) == 0){
-        val divisor = Math.pow(10,level).toInt
-        val digit = (i % divisor)/(divisor/10)
-        if (digit == 0 && level == height) " " else digit
-      } else " "
-    }).mkString("")+"|"
-  })
-
-
-}
 
 object Annotator {
-
   import Boxes._
+
+  type Abbrev = Either[List[AnnoType], Char]
+
+  case class AnnoType(name: String, abbreviation: Abbrev)
+
+  case class Annotation(continuationOp: Option[Char], positionMap: IntMap[Char], annoType: AnnoType)
+
+  case class BioBlock(text: String, startIndex: Int, annotations: List[Annotation])
+
+  def nextStart(bb: BioBlock) = bb.startIndex + bb.text.size
+
+  def renderBioBlock(bb: BioBlock): String = {
+    val next = nextStart(bb)
+
+    val height = (next - 1).toString.size
+
+    val bottomRuler = "| |"+(bb.startIndex until next).map(_ % 10).mkString("")+"|"
+    val topRulerList = (2 to height).map(level => {
+      "| |"+(bb.startIndex until next).map(i => {
+        if (i == bb.startIndex || (i % 10) == 0){
+          val divisor = Math.pow(10,level).toInt
+          val digit = (i % divisor)/(divisor/10)
+          if (digit == 0 && level == height) " " else digit
+        } else " "
+      }).mkString("")+"|"
+    })
+
+    val rulerBox = vcat(left)((bottomRuler +: topRulerList).reverseMap(tbox(_)).toList)
+
+    "\n" + rulerBox.toString + "\n "
+  }
+
+
 
   //takes an .svg filepath as only argument
   def main(args: Array[String])() = {
@@ -52,20 +66,19 @@ object Annotator {
       .foldLeft(List[(Element, BioBlock)]())((list, e) => {
         val startIndex = list match {
           case Nil => 0
-          case x::xs => x._2.next 
+          case x::xs => nextStart(x._2)
         }
 
-        (e, new BioBlock(e.getText(), startIndex))::list
+        (e, BioBlock(e.getText(), startIndex, List()))::list
       })
 
     //modify
     elmBioBlockList.foreach(pair => {
       val element = pair._1
       val bioBlock = pair._2
-      val bio = bioBlock.topRulerList.foldLeft(tbox(bioBlock.bottomRuler))((boxAcc, top) => {
-        tbox(top).atop(boxAcc)
-      })
-      element.setAttribute("bio", "\n" + bio.toString + "\n ")
+      val bio = renderBioBlock(bioBlock)
+        
+      element.setAttribute("bio", bio)
     })
 
     //format
