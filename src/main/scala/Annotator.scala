@@ -11,6 +11,7 @@ import org.jdom2.Element
 
 import scala.collection.JavaConversions.iterableAsScalaIterable 
 import scala.collection.immutable.IntMap
+import scala.collection.immutable.Queue
 
 import org.jdom2.output.Format
 import org.jdom2.output.XMLOutputter
@@ -22,11 +23,44 @@ object Annotator {
 
   type Abbrev = Either[List[AnnoType], Char]
 
-  case class AnnoType(name: String, abbreviation: Abbrev)
+  case class AnnoType(name: String, abbrev: Abbrev)
 
   case class Annotation(continuationOp: Option[Char], positionMap: IntMap[Char], annoType: AnnoType)
 
   case class BioBlock(text: String, startIndex: Int, annotations: List[Annotation])
+
+
+  def renderAnnotation(a: Annotation, length: Int) = {
+    val conti =  a.continuationOp match {
+      case Some(c) => s"|$c|"
+      case None => "| |"
+    }
+
+    val posi = (0 until length).foldLeft("")((stringAcc, i) => {
+      a.positionMap.get(i) match {
+        case Some(c) => stringAcc + c
+        case None => stringAcc + " "
+      }
+    })
+
+    val annot = {
+      def render(annoType: AnnoType): String = annoType.name + ": " + (annoType.abbrev match {
+        case Right(c) => c
+        case Left(list) => 
+          "{" + list.map(annoType => render(annoType)).mkString(", ") + "}"
+      })
+      "| " + "{" + render(a.annoType) + "}"
+    }
+
+    conti + posi + annot
+
+  }
+
+
+  def addAnnotation(anno: Annotation, bb: BioBlock) = { 
+    require(anno.positionMap.lastKey < nextStart(bb))
+    bb.copy(annotations = anno +: bb.annotations)
+  }
 
   def nextStart(bb: BioBlock) = bb.startIndex + bb.text.size
 
@@ -35,8 +69,7 @@ object Annotator {
 
     val height = (next - 1).toString.size
 
-    val bottomRuler = "| |"+(bb.startIndex until next).map(_ % 10).mkString("")+"|"
-    val topRulerList = (2 to height).map(level => {
+    val topRulerList = (height to 2 by -1).map(level => {
       "| |"+(bb.startIndex until next).map(i => {
         if (i == bb.startIndex || (i % 10) == 0){
           val divisor = Math.pow(10,level).toInt
@@ -46,9 +79,11 @@ object Annotator {
       }).mkString("")+"|"
     })
 
-    val rulerBox = vcat(left)((bottomRuler +: topRulerList).reverseMap(tbox(_)).toList)
+    val bottomRuler = "| |"+(bb.startIndex until next).map(_ % 10).mkString("")+"|"
 
-    "\n" + rulerBox.toString + "\n "
+    val rulerBox = vcat(left)((topRulerList :+ bottomRuler).map(tbox(_)).toList)
+
+    "\n" + bb.annotations.map(renderAnnotation(_, (next - bb.startIndex))).mkString("\n") + "\n" + rulerBox.toString + "\n "
   }
 
 
@@ -61,24 +96,26 @@ object Annotator {
     val builder = new SAXBuilder()
     val xml = builder.build(new File(filePath)) 
 
-    //find all the elements to annotate
-    val elmBioBlockList = xml.getRootElement().getDescendants(new ElementFilter("tspan"))
-      .foldLeft(List[(Element, BioBlock)]())((list, e) => {
-        val startIndex = list match {
-          case Nil => 0
-          case x::xs => nextStart(x._2)
-        }
-
-        (e, BioBlock(e.getText(), startIndex, List()))::list
+    //find the elements to annotate
+    val elms = xml.getRootElement().getDescendants(new ElementFilter("tspan"))
+      .foldLeft(Queue[Element]())((list, e) => {
+        list.enqueue(e)
       })
 
     //modify
-    elmBioBlockList.foreach(pair => {
-      val element = pair._1
-      val bioBlock = pair._2
+    elms.foldLeft(0)((startIndex, e) => {
+
+      val eType = AnnoType("eee", Right('e'))
+      val dType = AnnoType("ddd", Right('d'))
+
+      val cType = AnnoType("ccc", Left(List(dType, eType)))
+      val bType = AnnoType("bbb", Right('b'))
+      val aType = AnnoType("aaa", Right('a'))
+      val lineAnnotation = Annotation(Some('a'), IntMap[Char](1->'a', 4->'e'), AnnoType("line", Left(List(aType, bType, cType))))
+      val bioBlock = BioBlock(e.getText(), startIndex, List(lineAnnotation)) 
       val bio = renderBioBlock(bioBlock)
-        
-      element.setAttribute("bio", bio)
+      e.setAttribute("bio", bio)
+      nextStart(bioBlock)
     })
 
     //format
