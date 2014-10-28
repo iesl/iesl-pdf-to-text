@@ -2,6 +2,8 @@ package annotator
 
 import java.io.File
 import java.io.FileOutputStream
+import java.io.PrintWriter
+
 import org.jdom2.Content
 import org.jdom2.input.SAXBuilder
 import org.jdom2.filter.ElementFilter
@@ -15,35 +17,27 @@ import org.jdom2.output.LineSeparator
 
 class BioBlock(text: String, startIndex: Int) {
 
-  val end = startIndex + text.size
+  val next = startIndex + text.size
 
-  val rulers = {
-    val height = end.toString.size
+  val height = (next - 1).toString.size
 
-    val tops = (height to 2 by -1).map(level => {
-      "| |"+(startIndex to end).map(i => {
-
-        if (i == startIndex || (i % 10) == 0){
-
-          val divisor = Math.pow(10,level).toInt
-          val digit = (i % divisor)/(divisor/10)
-          if (digit == 0 && level == height) " " else digit
-
-        } else " "
-
-      }).mkString("")+"|"
-    })
-
-    val bottom = "| |"+(startIndex to end).map(_ % 10).mkString("")+"|"
-
-    tops :+ bottom
-  }
+  val bottomRuler = "| |"+(startIndex until next).map(_ % 10).mkString("")+"|"
+  val topRulerList = (2 to height).map(level => {
+    "| |"+(startIndex until next).map(i => {
+      if (i == startIndex || (i % 10) == 0){
+        val divisor = Math.pow(10,level).toInt
+        val digit = (i % divisor)/(divisor/10)
+        if (digit == 0 && level == height) " " else digit
+      } else " "
+    }).mkString("")+"|"
+  })
 
 
 }
 
 object Annotator {
 
+  import Boxes._
 
   //takes an .svg filepath as only argument
   def main(args: Array[String])() = {
@@ -54,28 +48,34 @@ object Annotator {
     val xml = builder.build(new File(filePath)) 
 
     //find all the elements to annotate
-    val elmBioBlockList = xml.getRootElement().getDescendants(new ElementFilter("tspan")).foldLeft(List[(Element, BioBlock)]())((list, e) => {
+    val elmBioBlockList = xml.getRootElement().getDescendants(new ElementFilter("tspan"))
+      .foldLeft(List[(Element, BioBlock)]())((list, e) => {
+        val startIndex = list match {
+          case Nil => 0
+          case x::xs => x._2.next 
+        }
 
-      val startIndex = list match {
-        case Nil => 0
-        case x::xs => x._2.end + 1 
-      }
-
-      (e, new BioBlock(e.getText(), startIndex))::list
-
-    })
+        (e, new BioBlock(e.getText(), startIndex))::list
+      })
 
     //modify
     elmBioBlockList.foreach(pair => {
       val element = pair._1
       val bioBlock = pair._2
-      val s = bioBlock.rulers.mkString("\n")
-      element.setAttribute("bio", s)
+      val bio = bioBlock.topRulerList.foldLeft(tbox(bioBlock.bottomRuler))((boxAcc, top) => {
+        tbox(top).atop(boxAcc)
+      })
+      element.setAttribute("bio", "\n" + bio.toString + "\n ")
     })
 
-    val out = new FileOutputStream("/home/thomas/out.svg")
+    //format
     val outputter = new XMLOutputter(Format.getPrettyFormat())
-    outputter.output(xml, out)
+    val modifiedXML = outputter.outputString(xml).replaceAll("&#xA;", "\n")
+
+    //write
+    val out = new FileOutputStream("/home/thomas/out.svg")
+    val writer = new PrintWriter(out)
+    writer.print(modifiedXML)
 
   }
 
@@ -86,6 +86,8 @@ object Boxes {
   import Scalaz._
   import Lens._
 
+  //newline char
+  val nl = "\n"
 
   // The basic data type.  A box has a specified size and some sort of
   //   contents.
@@ -152,7 +154,7 @@ object Boxes {
 
   // Given a string, split it back into a box
   def unrenderString(s:String): Box = 
-    s.split("\n").toList |> linesToBox
+    s.split(s"$nl").toList |> linesToBox
 
   // Given a list of strings, create a box
   def linesToBox(lines: List[String]): Box = {
@@ -321,7 +323,7 @@ object Boxes {
   // Render a 'Box' as a String, suitable for writing to the screen or
   //   a file.
   def render : Box => String = 
-    b => renderBox(b) |> (_.mkString("\n")) 
+    b => renderBox(b) |> (_.mkString(s"$nl")) 
 
 
   /** take n copies from list, padding end with A if necessary */
@@ -387,8 +389,8 @@ object Boxes {
   }
 
 
-  def fmtsll(sss: List[List[String]]) = sss.mkString("[\n  ", "\n  ", "\n]")
-  def fmtsl(ss: List[String]) = ss.mkString("[\n  ", "\n  ", "\n]")
+  def fmtsll(sss: List[List[String]]) = sss.mkString("[$nl  ", s"$nl  ", s"$nl]")
+  def fmtsl(ss: List[String]) = ss.mkString("[$nl  ", s"$nl  ", s"$nl]")
 
   // Render a box as a list of lines, using a given number of rows.
   def renderBoxWithRows : Int => Box => List[String] = 
@@ -690,26 +692,26 @@ object App extends App {
       "Inline-header label" atop flowed
     ))
 
-    println("\n\n")
+    println(s"$nl$nl")
 
     println(borderInlineTop(
       "Inline-header top header" atop sampleBox1
     ))
 
-    println("\n\n")
+    println(s"$nl$nl")
 
     println(border(
       "simple border" atop sampleBox2
     ))
 
 
-    println("\n\n")
+    println(s"$nl$nl")
 
     println(borderLeftRight("--> ", " <--")(
       "Left/right border" atop sampleBox3
     ))
     
-    println("\n\n")
+    println(s"$nl$nl")
 
     //boxesTest1()
   }
