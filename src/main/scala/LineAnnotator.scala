@@ -3,6 +3,7 @@ package annotator
 import org.jdom2.Content
 import org.jdom2.util.IteratorIterable
 import scala.collection.immutable.Queue
+import scala.collection.JavaConversions.iterableAsScalaIterable 
 
 object LineAnnotator {
   import Annotator._
@@ -25,24 +26,19 @@ object LineAnnotator {
 
     val annotator = new Annotator(filePath)
 
-    val lineList = {
-      def loop(es: IteratorIterable[Element], queueAcc: Queue[Queue[Element]]): List[List[Element]] = {
-        if (!es.hasNext) {
-          queueAcc.map(_.toList).toList
-        } else {
-          val e = es.next()
-          queueAcc.lastOption match {
-            case Some(currentLine) if (e.getAttribute("y").getValue() == currentLine.last.getAttribute("y").getValue()) => 
-              loop(es, queueAcc.init.enqueue {
-                queueAcc.last.enqueue(e)
-              })
-            case _ => 
-              loop(es, queueAcc.enqueue(Queue(e)))
+    val lineList = annotator.elements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
+      queueAcc.lastOption match {
+        case Some(currentLine) if (
+            e.getAttribute("y").getValue() 
+            == currentLine.last.getAttribute("y").getValue()
+        ) => 
+          queueAcc.init.enqueue {
+            queueAcc.last.enqueue(e)
           }
-        }
+        case _ => 
+          queueAcc.enqueue(Queue(e))
       }
-      loop(annotator.elements(), Queue())
-    }
+    }).map(_.toList).toList
 
     def firstAndLast(e: Element, ee: Element) = {
       val eeLast = ee.getText().size - 1
