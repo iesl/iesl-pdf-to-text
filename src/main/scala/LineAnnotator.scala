@@ -13,17 +13,6 @@ object LineAnnotator {
 
     val filePath = args(0)
 
-    val eType = AnnoType("eee", Right('e'))
-    val dType = AnnoType("ddd", Right('d'))
-
-    val cType = AnnoType("ccc", Left(List(dType, eType)))
-    val bType = AnnoType("bbb", Right('b'))
-    val aType = AnnoType("aaa", Right('a'))
-    val tt = AnnoType("line", Left(List(aType, bType, cType)))
-    val rule1: Element => Option[Annotation] = e => {
-      Some(Annotation(AnnoMap(1->'a', 4->'e', 15->'b', 400->'c'), List(cType,eType), tt))
-    }
-
     val annotator = new Annotator(filePath)
 
     val lineList = annotator.elements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
@@ -78,9 +67,9 @@ object LineAnnotator {
       }
     }).toMap
 
-    val rule2: Element => Option[Annotation] = e => {
+    val rule: Element => Option[Annotation] = e => {
 
-      val annoType = AnnoType("line", Right('l'))
+      val annoType = AnnoType("line", Left('l'))
 
       elAnnoMap.get(e) match {
         case None => None
@@ -90,7 +79,7 @@ object LineAnnotator {
     }
 
 
-    annotator.annotate(List(rule1, rule2)) 
+    annotator.annotate(List(rule)) 
     annotator.write()
 
   }

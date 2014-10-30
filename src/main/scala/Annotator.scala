@@ -26,7 +26,7 @@ object Annotator {
   type ElementFilter = org.jdom2.filter.ElementFilter
   type AnnoMap = IntMap[Char]
   val AnnoMap = IntMap
-  type Abbrev = Either[List[AnnoType], Char]
+  type Abbrev = Either[Char, List[AnnoType]]
   case class AnnoType(name: String, abbrev: Abbrev)
   case class Annotation(
     positionMap: AnnoMap, 
@@ -52,8 +52,8 @@ object Annotator {
 
     val annot = {
       def render(annoType: AnnoType): String = annoType.name + ": " + (annoType.abbrev match {
-        case Right(c) => c
-        case Left(list) => 
+        case Left(c) => c
+        case Right(list) => 
           "{" + list.map(annoType => render(annoType)).mkString(", ") + "}"
       })
       "type: " + "{" + render(a.annoType) + "}"
