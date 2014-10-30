@@ -29,20 +29,13 @@ object Annotator {
   type Abbrev = Either[List[AnnoType], Char]
   case class AnnoType(name: String, abbrev: Abbrev)
   case class Annotation(
-    continuationOp: Option[Char], 
     positionMap: AnnoMap, 
     constraintList: List[AnnoType],
     annoType: AnnoType
   )
   case class BioBlock(startIndex: Int, nextIndex: Int, annotations: List[Annotation])
 
-  case class AnnoGroup(xml: Document, map: Map[Element, BioBlock])
-
   def renderAnnotation(a: Annotation, length: Int) = {
-    val conti =  a.continuationOp match {
-      case Some(c) => s"|$c|"
-      case None => "| |"
-    }
 
     val posi = (0 until length).foldLeft("")((stringAcc, i) => {
       a.positionMap.get(i) match {
@@ -66,11 +59,9 @@ object Annotator {
       "type: " + "{" + render(a.annoType) + "}"
     }
 
-    conti + posi + "| " + "{" + annot + constr + "}"
+    "| |" + posi + "| " + "{" + annot + constr + "}"
 
   }
-
-
 
   def renderBioBlock(bb: BioBlock): String = {
     val next = bb.nextIndex
@@ -95,59 +86,61 @@ object Annotator {
   }
 
 
-  def write(ag: AnnoGroup) = {
-
-    ag.map.foreach {case (e, block) => {
-      e.setAttribute("bio", renderBioBlock(block))
-    }}
-
-    //format
-    val outputter = new XMLOutputter(Format.getPrettyFormat())
-    val modifiedXML = outputter.outputString(ag.xml).replaceAll("&#xA;", "\n")
-
-    //write
-    val out = new FileOutputStream("/home/thomas/out.svg")
-    val writer = new PrintWriter(out)
-    writer.print(modifiedXML)
-
-  }
-
-
-  def mkAnnoGroup(filePath: String) = {
-
-    val builder = new SAXBuilder()
-    val xml = builder.build(new File(filePath)) 
-
-    //find the elements to annotate
-    val es = xml.getRootElement().getDescendants(new ElementFilter("tspan"))
-
-    def bbMap(es: IteratorIterable[Element], startIndex: Int): Map[Element, BioBlock] = {
-      if (es.hasNext) {
-        val e = es.next()
-        val nextIndex = startIndex + e.getText().size
-        bbMap(es, nextIndex) + (e -> BioBlock(startIndex, nextIndex, List()))
-      } else {
-        new HashMap[Element, BioBlock]()
-      }
-    }
-
-    AnnoGroup(xml, bbMap(es, 0))
-
-  }
-
   def addAnnotation(anno: Annotation, bb: BioBlock) = { 
     //require(anno.positionMap.lastKey < bb.nextIndex)
     bb.copy(annotations = anno +: bb.annotations)
   }
 
-  def annotate(ruleList: List[Element => Annotation], ag: AnnoGroup): AnnoGroup = {
-    val uMap = ag.map.map { case (e, block) => {
-      val annotationList = ruleList.map(_(e))
+
+}
+
+
+class Annotator(filePath: String) {
+  import Annotator._
+
+  private val builder = new SAXBuilder()
+  val xml = builder.build(new File(filePath)) 
+
+  //find the elements to annotate
+  def elements() = xml.getRootElement().getDescendants(new ElementFilter("tspan"))
+    
+  var bbMap: Map[Element, BioBlock] = {
+    def loop(es: IteratorIterable[Element], startIndex: Int): Map[Element, BioBlock] = {
+      if (es.hasNext) {
+        val e = es.next()
+        val nextIndex = startIndex + e.getText().size
+        loop(es, nextIndex) + (e -> BioBlock(startIndex, nextIndex, List()))
+      } else {
+        new HashMap[Element, BioBlock]()
+      }
+    }
+    loop(elements(), 0)
+  }
+
+  //mutate bbMap
+  def annotate(ruleList: List[Element => Option[Annotation]]): Unit = {
+    bbMap = bbMap.map { case (e, block) => {
+      val annotationList = ruleList.flatMap(_(e))
       (e, annotationList.foldLeft(block)((b, a) => addAnnotation(a, b)))
     }}
-
-    ag.copy(map = uMap)
   }
+
+  //mutate xml and elements
+  def write(): Unit = {
+    bbMap.foreach {case (e, block) => {
+      e.setAttribute("bio", renderBioBlock(block))
+    }}
+
+    //format
+    val outputter = new XMLOutputter(Format.getPrettyFormat())
+    val modifiedXML = outputter.outputString(xml).replaceAll("&#xA;", "\n").replaceAll("<svg:tspan", "\n<svg:tspan")
+
+    //write
+    val out = new FileOutputStream("/home/thomas/out.svg")
+    val writer = new PrintWriter(out)
+    writer.print(modifiedXML)
+  }
+
 
 }
 
