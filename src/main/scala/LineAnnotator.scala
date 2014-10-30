@@ -1,9 +1,16 @@
 package annotator
 
+import java.io.File
 import org.jdom2.Content
 import org.jdom2.util.IteratorIterable
 import scala.collection.immutable.Queue
 import scala.collection.JavaConversions.iterableAsScalaIterable 
+
+import org.jdom2.input.SAXBuilder
+import org.jdom2.filter.ElementFilter
+import org.jdom2.Element
+import org.jdom2.Document
+import org.jdom2.util.IteratorIterable
 
 object LineAnnotator {
   import Annotator._
@@ -13,9 +20,13 @@ object LineAnnotator {
 
     val filePath = args(0)
 
-    val annotator = new Annotator(filePath)
+    val builder = new SAXBuilder()
+    val dom = builder.build(new File(filePath)) 
 
-    val lineList = annotator.elements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
+
+    val annotator = new Annotator(dom)
+
+    val lineList = annotator.elements.foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
       queueAcc.lastOption match {
         case Some(currentLine) if (
             e.getAttribute("y").getValue() 
@@ -31,51 +42,50 @@ object LineAnnotator {
 
     def firstAndLast(e: Element, ee: Element) = {
       val eeLast = ee.getText().size - 1
-      List(
-        e -> ((1 until e.getText().size).foldLeft(AnnoMap[Char]())((annoMap, i) => {
+      (
+        ((1 until e.getText().size).foldLeft(AnnoMap[Char]())((annoMap, i) => {
           annoMap + (i -> '~')
         }) + (0 -> 'l') ),
-        ee -> ( (0 until eeLast).foldLeft(AnnoMap[Char]())((annoMap, i) => {
+        ( (0 until eeLast).foldLeft(AnnoMap[Char]())((annoMap, i) => {
           annoMap + (i -> '~') 
         }) + (eeLast -> '$') )
       )
     }
 
-    val elAnnoMap = lineList.flatMap(line => {
+    val annoMapSeq = lineList.toIndexedSeq.flatMap(line => {
       line match {
         case e::Nil => 
           val lastIndex = e.getText().size - 1
-          List(
-            if (lastIndex == 0) { e -> AnnoMap(0 -> 'L') } 
-            else {
-              e -> ((1 until lastIndex).foldLeft(AnnoMap[Char]())((annoMap, i) => {
+          IndexedSeq(
+            if (lastIndex == 0) {
+              AnnoMap(0 -> 'L') 
+            } else {
+              (1 until lastIndex).foldLeft(AnnoMap[Char]())((annoMap, i) => {
                 annoMap + (i -> '~')
-              }) + (lastIndex -> '$') + (0 -> 'l'))
+              }) + (lastIndex -> '$') + (0 -> 'l')
             }
           )
-        case e::ee::Nil => firstAndLast(e, ee)
+        case e::ee::Nil => 
+          val fl = firstAndLast(e, ee)
+          IndexedSeq(fl._1, fl._2)
         case es => 
           val first = es.head
           val tail = es.tail
           val middle = tail.init
           val last = tail.last
-          firstAndLast(first, last) ++ middle.map(e => {
-            e -> ( (0 until e.getText().size).foldLeft(AnnoMap[Char]())((annoMap, i) => {
+          val fl = firstAndLast(first, last) 
+          fl._1 +: middle.toIndexedSeq.map(e => {
+            (0 until e.getText().size).foldLeft(AnnoMap[Char]())((annoMap, i) => {
               annoMap + (i -> '~')
-            }))
-          })
+            })
+          }) :+ fl._2
       }
-    }).toMap
+    })
 
-    val rule: Element => Option[Annotation] = e => {
-
+    val rule: Int => Option[Annotation] = i => {
       val annoType = AnnoType("line", Left('l'))
-
-      elAnnoMap.get(e) match {
-        case None => None
-        case Some(annoMap) => Some(Annotation(annoMap, List(), annoType))
-      }
-
+      val annoMap = annoMapSeq(i)
+      Some(Annotation(annoMap, List(), annoType))
     }
 
 

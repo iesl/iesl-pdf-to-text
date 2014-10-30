@@ -91,56 +91,49 @@ object Annotator {
     bb.copy(annotations = anno +: bb.annotations)
   }
 
-
 }
 
 
-class Annotator(filePath: String) {
+case class Annotator(dom: Document) {
   import Annotator._
 
-  private val builder = new SAXBuilder()
-  val xml = builder.build(new File(filePath)) 
-
   //find the elements to annotate
-  def elements() = xml.getRootElement().getDescendants(new ElementFilter("tspan"))
-    
-  var bbMap: Map[Element, BioBlock] = {
-    def loop(es: IteratorIterable[Element], startIndex: Int): Map[Element, BioBlock] = {
-      if (es.hasNext) {
-        val e = es.next()
-        val nextIndex = startIndex + e.getText().size
-        loop(es, nextIndex) + (e -> BioBlock(startIndex, nextIndex, List()))
-      } else {
-        new HashMap[Element, BioBlock]()
-      }
-    }
-    loop(elements(), 0)
-  }
+  private def elementsOf(dom: Document) = dom.getRootElement().getDescendants(new ElementFilter("tspan")).toIterable
+  private val frozenDom = dom.clone()
+  val elements = elementsOf(frozenDom)
 
-  //mutate bbMap
-  def annotate(ruleList: List[Element => Option[Annotation]]): Unit = {
-    bbMap = bbMap.map { case (e, block) => {
-      val annotationList = ruleList.flatMap(_(e))
-      (e, annotationList.foldLeft(block)((b, a) => addAnnotation(a, b)))
+  var bbSeq = elements.foldLeft(IndexedSeq[BioBlock]())( (seqAcc, e) => {
+    val startIndex = if (seqAcc.isEmpty) 0 else seqAcc.last.nextIndex
+    val nextIndex = startIndex + e.getText().size
+    seqAcc :+ BioBlock(startIndex, nextIndex, List())
+  } )
+
+  //mutate bbSeq
+  def annotate(ruleList: List[Int => Option[Annotation]]): Unit = {
+    bbSeq = bbSeq.zipWithIndex.map { case (block, i) => {
+      val annotationList = ruleList.flatMap(_(i))
+      annotationList.foldLeft(block)((b, a) => addAnnotation(a, b))
     }}
   }
 
-  //mutate xml and elements
   def write(): Unit = {
-    bbMap.foreach {case (e, block) => {
+
+    val writableDom = frozenDom.clone()
+
+    elementsOf(writableDom).zipWithIndex.foreach { case (e, i) => {
+      val block = bbSeq(i)
       e.setAttribute("bio", renderBioBlock(block))
     }}
 
     //format
     val outputter = new XMLOutputter(Format.getPrettyFormat())
-    val modifiedXML = outputter.outputString(xml).replaceAll("&#xA;", "\n").replaceAll("<svg:tspan", "\n<svg:tspan")
+    val modifiedXML = outputter.outputString(writableDom).replaceAll("&#xA;", "\n").replaceAll("<svg:tspan", "\n<svg:tspan")
 
     //write
     val out = new FileOutputStream("/home/thomas/out.svg")
     val writer = new PrintWriter(out)
     writer.print(modifiedXML)
   }
-
 
 }
 
