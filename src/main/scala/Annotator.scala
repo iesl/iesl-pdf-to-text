@@ -26,24 +26,29 @@ object Annotator {
   type ElementFilter = org.jdom2.filter.ElementFilter
   type AnnoMap = IntMap[Char]
   val AnnoMap = IntMap
-  type Abbrev = Either[Char, List[AnnoType]]
-  case class AnnoType(name: String, abbrev: Abbrev)
+  
+  case class AnnoType(name: String, c: Char)
+
+  sealed trait AnnoTypeBox
+  case class AnnoTypeSingle(at: AnnoType) extends AnnoTypeBox
+  case class AnnoTypeGroup(name: String, atList: List[AnnoType]) extends AnnoTypeBox
+
   case class Annotation(
-    positionMap: AnnoMap, 
-    constraintList: List[AnnoType],
-    annoType: AnnoType
+    annoMap: AnnoMap, 
+    annoTypeBox: AnnoTypeBox,
+    constraintList: List[AnnoType]
   )
+
   case class BioBlock(startIndex: Int, nextIndex: Int, annotations: List[Annotation])
 
-  def renderAnnotation(a: Annotation, length: Int) = {
+  private def renderAnnotation(a: Annotation, length: Int) = {
 
     val posi = (0 until length).foldLeft("")((stringAcc, i) => {
-      a.positionMap.get(i) match {
+      a.annoMap.get(i) match {
         case Some(c) => stringAcc + c
         case None => stringAcc + " "
       }
     })
-
 
     val constr = 
       if (!a.constraintList.isEmpty) {
@@ -51,19 +56,19 @@ object Annotator {
       } else ""
 
     val annot = {
-      def render(annoType: AnnoType): String = annoType.name + ": " + (annoType.abbrev match {
-        case Left(c) => c
-        case Right(list) => 
-          "{" + list.map(annoType => render(annoType)).mkString(", ") + "}"
-      })
-      "type: " + "{" + render(a.annoType) + "}"
+      "type: " + "{" + (a.annoTypeBox match {
+        case AnnoTypeSingle(annoType) => 
+          annoType.name + ": " + annoType.c
+        case AnnoTypeGroup(name, list) => 
+          name + ": " + "{" + list.map(annoType => annoType.name + ": " + annoType.c).mkString(", ") + "}"
+      }) + "}"
     }
 
     "| |" + posi + "| " + "{" + annot + constr + "}"
 
   }
 
-  def renderBioBlock(bb: BioBlock): String = {
+  private def renderBioBlock(bb: BioBlock): String = {
     val next = bb.nextIndex
 
     val height = (next - 1).toString.size
@@ -86,8 +91,8 @@ object Annotator {
   }
 
 
-  def addAnnotation(anno: Annotation, bb: BioBlock) = { 
-    //require(anno.positionMap.lastKey < bb.nextIndex)
+  private def addAnnotation(anno: Annotation, bb: BioBlock) = { 
+    //require(anno.annoMap.lastKey < bb.nextIndex)
     bb.copy(annotations = anno +: bb.annotations)
   }
 
@@ -111,12 +116,19 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[BioBlock]) {
 
   def elements() = elementsOf(frozenDom.clone())
 
-  final def annotate(ruleList: List[Int => Option[Annotation]]): Annotator = {
+  //TO DO: change rule to be char token (Int, Int, char) => label-char 
+  //and change name to annotateOverChar
+  final def annotate(annoTypeBox: AnnoTypeBox, rule: Int => AnnoMap): Annotator = {
+    
     new Annotator(
       frozenDom,
       bbSeq.zipWithIndex.map { case (block, i) => {
-        val annotationList = ruleList.flatMap(_(i))
-        annotationList.foldLeft(block)((b, a) => addAnnotation(a, b))
+        val annoMap = rule(i)
+        //TO DO: check if annoMap contains the B label 
+        //if so, add annoMaps containing begin to end
+        //to index of annotype -> spanIndex -> charIndex -> list of annoMaps
+        val annotation = Annotation(annoMap, annoTypeBox, List())
+        addAnnotation(annotation, block)
       }}
     )
   }

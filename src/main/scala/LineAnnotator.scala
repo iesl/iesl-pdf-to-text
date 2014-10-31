@@ -15,6 +15,7 @@ import org.jdom2.util.IteratorIterable
 object LineAnnotator {
   import Annotator._
 
+
   def main(args: Array[String]): Unit = {
 
     val filePath = args(0)
@@ -81,14 +82,7 @@ object LineAnnotator {
       }
     })
 
-    val rule: Int => Option[Annotation] = i => {
-      val annoType = AnnoType("line", Left('l'))
-      val annoMap = annoMapSeq(i)
-      Some(Annotation(annoMap, List(), annoType))
-    }
-
-
-    annotator.annotate(List(rule)).write()
+    annotator.annotate(AnnoTypeSingle(AnnoType("line", 'l')), annoMapSeq(_)).write()
 
   }
 
