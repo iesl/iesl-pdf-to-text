@@ -91,35 +91,39 @@ object Annotator {
     bb.copy(annotations = anno +: bb.annotations)
   }
 
+  private def elementsOf(dom: Document) = dom.getRootElement().getDescendants(new ElementFilter("tspan")).toIterable
+
 }
 
+import Annotator._
+class Annotator(private val dom: Document, val bbSeq: IndexedSeq[BioBlock]) {
 
-case class Annotator(dom: Document) {
-  import Annotator._
+  def this(dom: Document) = this(
+    dom,
+    elementsOf(dom).foldLeft(IndexedSeq[BioBlock]())( (seqAcc, e) => {
+      val startIndex = if (seqAcc.isEmpty) 0 else seqAcc.last.nextIndex
+      val nextIndex = startIndex + e.getText().size
+      seqAcc :+ BioBlock(startIndex, nextIndex, List())
+    } )
+  ) 
 
-  //find the elements to annotate
-  private def elementsOf(dom: Document) = dom.getRootElement().getDescendants(new ElementFilter("tspan")).toIterable
   private val frozenDom = dom.clone()
-  val elements = elementsOf(frozenDom)
 
-  var bbSeq = elements.foldLeft(IndexedSeq[BioBlock]())( (seqAcc, e) => {
-    val startIndex = if (seqAcc.isEmpty) 0 else seqAcc.last.nextIndex
-    val nextIndex = startIndex + e.getText().size
-    seqAcc :+ BioBlock(startIndex, nextIndex, List())
-  } )
+  def elements() = elementsOf(frozenDom.clone())
 
-  //mutate bbSeq
-  def annotate(ruleList: List[Int => Option[Annotation]]): Unit = {
-    bbSeq = bbSeq.zipWithIndex.map { case (block, i) => {
-      val annotationList = ruleList.flatMap(_(i))
-      annotationList.foldLeft(block)((b, a) => addAnnotation(a, b))
-    }}
+  final def annotate(ruleList: List[Int => Option[Annotation]]): Annotator = {
+    new Annotator(
+      frozenDom,
+      bbSeq.zipWithIndex.map { case (block, i) => {
+        val annotationList = ruleList.flatMap(_(i))
+        annotationList.foldLeft(block)((b, a) => addAnnotation(a, b))
+      }}
+    )
   }
 
-  def write(): Unit = {
+  final def write(): Annotator = {
 
     val writableDom = frozenDom.clone()
-
     elementsOf(writableDom).zipWithIndex.foreach { case (e, i) => {
       val block = bbSeq(i)
       e.setAttribute("bio", renderBioBlock(block))
@@ -133,6 +137,8 @@ case class Annotator(dom: Document) {
     val out = new FileOutputStream("/home/thomas/out.svg")
     val writer = new PrintWriter(out)
     writer.print(modifiedXML)
+    this
+
   }
 
 }

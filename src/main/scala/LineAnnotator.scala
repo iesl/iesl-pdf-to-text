@@ -15,8 +15,7 @@ import org.jdom2.util.IteratorIterable
 object LineAnnotator {
   import Annotator._
 
-
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
 
     val filePath = args(0)
 
@@ -26,7 +25,7 @@ object LineAnnotator {
 
     val annotator = new Annotator(dom)
 
-    val lineList = annotator.elements.foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
+    val lineList = annotator.elements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
       queueAcc.lastOption match {
         case Some(currentLine) if (
             e.getAttribute("y").getValue() 
@@ -89,8 +88,7 @@ object LineAnnotator {
     }
 
 
-    annotator.annotate(List(rule)) 
-    annotator.write()
+    annotator.annotate(List(rule)).write()
 
   }
 
