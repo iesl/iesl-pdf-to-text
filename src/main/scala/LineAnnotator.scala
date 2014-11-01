@@ -6,6 +6,7 @@ import org.jdom2.util.IteratorIterable
 import scala.collection.immutable.Queue
 import scala.collection.JavaConversions.iterableAsScalaIterable 
 
+import scala.collection.immutable.IntMap
 import org.jdom2.input.SAXBuilder
 import org.jdom2.filter.ElementFilter
 import org.jdom2.Element
@@ -43,24 +44,24 @@ object LineAnnotator {
     def firstAndLast(e: Element, ee: Element) = {
       val eeLast = ee.getText().size - 1
       (
-        ((1 until e.getText().size).foldLeft(AnnoMap[Char]())((annoMap, i) => {
+        ((1 until e.getText().size).foldLeft(IntMap[Char]())((annoMap, i) => {
           annoMap + (i -> '~')
         }) + (0 -> 'l') ),
-        ( (0 until eeLast).foldLeft(AnnoMap[Char]())((annoMap, i) => {
+        ( (0 until eeLast).foldLeft(IntMap[Char]())((annoMap, i) => {
           annoMap + (i -> '~') 
         }) + (eeLast -> '$') )
       )
     }
 
-    val annoMapSeq = lineList.toIndexedSeq.flatMap(line => {
+    val labelMapSeq = lineList.toIndexedSeq.flatMap(line => {
       line match {
         case e::Nil => 
           val lastIndex = e.getText().size - 1
           IndexedSeq(
             if (lastIndex == 0) {
-              AnnoMap(0 -> 'L') 
+              IntMap(0 -> 'L') 
             } else {
-              (1 until lastIndex).foldLeft(AnnoMap[Char]())((annoMap, i) => {
+              (1 until lastIndex).foldLeft(IntMap[Char]())((annoMap, i) => {
                 annoMap + (i -> '~')
               }) + (lastIndex -> '$') + (0 -> 'l')
             }
@@ -75,14 +76,19 @@ object LineAnnotator {
           val last = tail.last
           val fl = firstAndLast(first, last) 
           fl._1 +: middle.toIndexedSeq.map(e => {
-            (0 until e.getText().size).foldLeft(AnnoMap[Char]())((annoMap, i) => {
+            (0 until e.getText().size).foldLeft(IntMap[Char]())((annoMap, i) => {
               annoMap + (i -> '~')
             })
           }) :+ fl._2
       }
     })
 
-    annotator.annotate(AnnoTypeSingle(AnnoType("line", 'l')), annoMapSeq(_)).write()
+
+    val rule: (Int, Int, Char) => Option[Char] = (blockIndex, charIndex, char) => {
+      labelMapSeq(blockIndex).get(charIndex)
+    }
+
+    annotator.annotateChar(AnnoTypeSingle(AnnoType("line", 'l')), rule).write()
 
   }
 

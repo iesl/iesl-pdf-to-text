@@ -24,8 +24,6 @@ object Annotator {
 
   type Element = org.jdom2.Element
   type ElementFilter = org.jdom2.filter.ElementFilter
-  type AnnoMap = IntMap[Char]
-  val AnnoMap = IntMap
   
   case class AnnoType(name: String, c: Char)
 
@@ -34,12 +32,12 @@ object Annotator {
   case class AnnoTypeGroup(name: String, atList: List[AnnoType]) extends AnnoTypeBox
 
   case class Annotation(
-    annoMap: AnnoMap, 
+    annoMap: IntMap[Char], 
     annoTypeBox: AnnoTypeBox,
     constraintList: List[AnnoType]
   )
 
-  case class BioBlock(startIndex: Int, nextIndex: Int, annotations: List[Annotation])
+  case class Block(startIndex: Int, nextIndex: Int, annotations: List[Annotation])
 
   private def renderAnnotation(a: Annotation, length: Int) = {
 
@@ -68,7 +66,7 @@ object Annotator {
 
   }
 
-  private def renderBioBlock(bb: BioBlock): String = {
+  private def renderBlock(bb: Block): String = {
     val next = bb.nextIndex
 
     val height = (next - 1).toString.size
@@ -91,7 +89,7 @@ object Annotator {
   }
 
 
-  private def addAnnotation(anno: Annotation, bb: BioBlock) = { 
+  private def addAnnotation(anno: Annotation, bb: Block) = { 
     //require(anno.annoMap.lastKey < bb.nextIndex)
     bb.copy(annotations = anno +: bb.annotations)
   }
@@ -101,14 +99,14 @@ object Annotator {
 }
 
 import Annotator._
-class Annotator(private val dom: Document, val bbSeq: IndexedSeq[BioBlock]) {
+class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block]) {
 
   def this(dom: Document) = this(
     dom,
-    elementsOf(dom).foldLeft(IndexedSeq[BioBlock]())( (seqAcc, e) => {
+    elementsOf(dom).foldLeft(IndexedSeq[Block]())( (seqAcc, e) => {
       val startIndex = if (seqAcc.isEmpty) 0 else seqAcc.last.nextIndex
       val nextIndex = startIndex + e.getText().size
-      seqAcc :+ BioBlock(startIndex, nextIndex, List())
+      seqAcc :+ Block(startIndex, nextIndex, List())
     } )
   ) 
 
@@ -116,18 +114,25 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[BioBlock]) {
 
   def elements() = elementsOf(frozenDom.clone())
 
-  //TO DO: change rule to be char token (Int, Int, char) => label-char 
-  //and change name to annotateOverChar
-  final def annotate(annoTypeBox: AnnoTypeBox, rule: Int => AnnoMap): Annotator = {
+  final def annotateChar(annoTypeBox: AnnoTypeBox, rule: (Int, Int, Char) => Option[Char]): Annotator = {
+
+    val es = elements().toIndexedSeq
     
     new Annotator(
       frozenDom,
       bbSeq.zipWithIndex.map { case (block, i) => {
-        val annoMap = rule(i)
+
+        val labelMap = IntMap(es(i).getText().zipWithIndex.flatMap { case (char, charIndex) => {
+          rule(i, charIndex, char) match {
+            case Some(label) => Some(charIndex -> label)
+            case None => None
+          }
+        } }: _ *)
+
         //TO DO: check if annoMap contains the B label 
         //if so, add annoMaps containing begin to end
         //to index of annotype -> spanIndex -> charIndex -> list of annoMaps
-        val annotation = Annotation(annoMap, annoTypeBox, List())
+        val annotation = Annotation(labelMap, annoTypeBox, List())
         addAnnotation(annotation, block)
       }}
     )
@@ -138,7 +143,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[BioBlock]) {
     val writableDom = frozenDom.clone()
     elementsOf(writableDom).zipWithIndex.foreach { case (e, i) => {
       val block = bbSeq(i)
-      e.setAttribute("bio", renderBioBlock(block))
+      e.setAttribute("bio", renderBlock(block))
     }}
 
     //format
