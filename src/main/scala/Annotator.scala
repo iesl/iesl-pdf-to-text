@@ -27,13 +27,13 @@ object Annotator {
   
   case class AnnoType(name: String, c: Char)
 
-  sealed trait AnnoTypeBox
-  case class AnnoTypeSingle(at: AnnoType) extends AnnoTypeBox
-  case class AnnoTypeGroup(name: String, atList: List[AnnoType]) extends AnnoTypeBox
+  //sealed trait AnnoTypeBox
+  //case class AnnoTypeSingle(at: AnnoType) extends AnnoTypeBox
+  //case class AnnoTypeGroup(name: String, atList: List[AnnoType]) extends AnnoTypeBox
 
   case class Annotation(
     annoMap: IntMap[Char], 
-    annoTypeBox: AnnoTypeBox,
+    annoType: AnnoType,
     constraintList: List[AnnoType]
   )
 
@@ -53,12 +53,17 @@ object Annotator {
         ", constraint: " + a.constraintList.map(_.name).mkString("/")
       } else ""
 
+    //val annot = {
+    //  "type: " + "{" + (a.annoTypeBox match {
+    //    case AnnoTypeSingle(annoType) => 
+    //      annoType.name + ": " + annoType.c
+    //    case AnnoTypeGroup(name, list) => 
+    //      name + ": " + "{" + list.map(annoType => annoType.name + ": " + annoType.c).mkString(", ") + "}"
+    //  }) + "}"
+    //}
     val annot = {
-      "type: " + "{" + (a.annoTypeBox match {
-        case AnnoTypeSingle(annoType) => 
-          annoType.name + ": " + annoType.c
-        case AnnoTypeGroup(name, list) => 
-          name + ": " + "{" + list.map(annoType => annoType.name + ": " + annoType.c).mkString(", ") + "}"
+      "type: " + "{" + (a.annoType match {
+        case AnnoType(name, c) => name + ": " + c
       }) + "}"
     }
 
@@ -99,7 +104,7 @@ object Annotator {
 }
 
 import Annotator._
-class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block]) {
+class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val annoAtomIndexMap: Map[AnnoType, IntMap[List[Int]]]) {
 
   def this(dom: Document) = this(
     dom,
@@ -107,54 +112,85 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block]) {
       val startIndex = if (seqAcc.isEmpty) 0 else seqAcc.last.nextIndex
       val nextIndex = startIndex + e.getText().size
       seqAcc :+ Block(startIndex, nextIndex, List())
-    } )
+    } ),
+    HashMap()
   ) 
 
   private val frozenDom = dom.clone()
 
   def elements() = elementsOf(frozenDom.clone())
 
-  final def annotateChar(annoTypeBox: AnnoTypeBox, rule: (Int, Int, Char) => Option[Char]): Annotator = {
+  final def annotateBlock(annoTypeBox: AnnoType, rule: Int => Option[Char]): Annotator = {
+
+    new Annotator(
+      frozenDom,
+      bbSeq.zipWithIndex.map { case (block, i) => {
+
+        val labelMap = IntMap(rule(i).map((0 -> _)).toList: _ *)
+        //TO DO: check if annoMap contains the B label 
+        //if so, add annoMaps containing begin to end
+        //to index of annotype -> spanIndex -> charIndex -> list of annoMaps
+        val annotation = Annotation(labelMap, annoTypeBox, List())
+        addAnnotation(annotation, block)
+      }},
+      annoAtomIndexMap
+    )
+  }
+
+  final def annotateChar(annoTypeBox: AnnoType, rule: (Int, Int) => Option[Char]): Annotator = {
 
     val es = elements().toIndexedSeq
+
+    val startIndexMap = IntMap(bbSeq.zipWithIndex.flatMap { 
+      case (block, i) => 
+        (0 until es(i).getText().size).flatMap(charIndex => {
+          rule(i, charIndex) match {
+            case Some(label) if(label == 'l' || label == 'L') =>
+              Some(charIndex)
+            case _ => None
+          }
+        }).toList match {
+          case Nil => None
+          case xs => Some(i -> xs)
+        }
+    }: _*)
+
+
     
     new Annotator(
       frozenDom,
-      bbSeq.zipWithIndex.map { case (block, i) => {
-
-        val labelMap = IntMap(es(i).getText().zipWithIndex.flatMap { case (char, charIndex) => {
-          rule(i, charIndex, char) match {
-            case Some(label) => Some(charIndex -> label)
-            case None => None
-          }
-        } }: _ *)
-
-        //TO DO: check if annoMap contains the B label 
-        //if so, add annoMaps containing begin to end
-        //to index of annotype -> spanIndex -> charIndex -> list of annoMaps
-        val annotation = Annotation(labelMap, annoTypeBox, List())
-        addAnnotation(annotation, block)
-      }}
+      bbSeq.zipWithIndex.map { 
+        case (block, i) => 
+          val labelMap = IntMap((0 until es(i).getText().size).flatMap {charIndex => {
+            rule(i, charIndex).map((charIndex -> _))
+          } }: _ *)
+          val annotation = Annotation(labelMap, annoTypeBox, List())
+          addAnnotation(annotation, block)
+      },
+      annoAtomIndexMap + (annoTypeBox -> startIndexMap)
     )
   }
 
-  final def annotateBlock(annoTypeBox: AnnoTypeBox, rule: (Int, Element) => Option[Char]): Annotator = {
-
-    val es = elements().toIndexedSeq
+  final def annotateAnnoType(annoType: AnnoType, annoTypeBox: AnnoType, rule: (Int, Int) => Option[Char]): Annotator = {
 
     new Annotator(
       frozenDom,
-      bbSeq.zipWithIndex.map { case (block, i) => {
-
-        val labelMap = IntMap(rule(i, es(i)).map((0 -> _)).toList: _ *)
-        //TO DO: check if annoMap contains the B label 
-        //if so, add annoMaps containing begin to end
-        //to index of annotype -> spanIndex -> charIndex -> list of annoMaps
-        val annotation = Annotation(labelMap, annoTypeBox, List())
-        addAnnotation(annotation, block)
-      }}
+      bbSeq.zipWithIndex.map { case (block, blockIndex) => {
+        annoAtomIndexMap(annoType).get(blockIndex) match {
+          case None => block
+          case Some(charIndexList) =>
+            val labelMap = IntMap(charIndexList.flatMap(charIndex => {
+              rule(blockIndex, charIndex).map((charIndex -> _))
+            }): _*)
+            val annotation = Annotation(labelMap, annoTypeBox, List())
+            addAnnotation(annotation, block)
+        }
+      }},
+      annoAtomIndexMap
     )
+
   }
+
 
   final def write(): Annotator = {
 

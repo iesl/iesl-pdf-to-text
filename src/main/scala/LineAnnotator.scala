@@ -86,37 +86,43 @@ object LineAnnotator {
     })
 
 
-    val rule: (Int, Int, Char) => Option[Char] = (blockIndex, charIndex, char) => {
+    val rule: (Int, Int) => Option[Char] = (blockIndex, charIndex) => {
       labelMapSeq(blockIndex).get(charIndex)
     }
 
-    annotator.annotateChar(AnnoTypeSingle(AnnoType("line", 'l')), rule).write()
+    val annoWithLine = annotator.annotateChar(AnnoType("line", 'l'), rule).write()
+
+    val ruleOnLine: (Int, Int) => Option[Char] = (blockIndex, charIndex) => {
+      Some('R')
+    }
+
+    annoWithLine.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine).write()
 
 
 
     //Line By Block
 
-    val labelMapSeq2 = lineList.toIndexedSeq.flatMap(line => {
-      line match {
-        case e::Nil => List('X')
-        case e::ee::Nil => List('x', '$')
-        case es => 
-          val first = es.head
-          val tail = es.tail
-          val middle = tail.init
-          val last = tail.last
-          val fl = firstAndLast(first, last) 
-          'x' +: middle.toIndexedSeq.map(e => {
-              '~'
-          }) :+ '$'
-      }
-    })
+    //val labelMapSeq2 = lineList.toIndexedSeq.flatMap(line => {
+    //  line match {
+    //    case e::Nil => List('X')
+    //    case e::ee::Nil => List('x', '$')
+    //    case es => 
+    //      val first = es.head
+    //      val tail = es.tail
+    //      val middle = tail.init
+    //      val last = tail.last
+    //      val fl = firstAndLast(first, last) 
+    //      'x' +: middle.toIndexedSeq.map(e => {
+    //          '~'
+    //      }) :+ '$'
+    //  }
+    //})
 
 
-    val rule2: (Int, Element) => Option[Char] = (blockIndex, e) => {
-      Some(labelMapSeq2(blockIndex))
-    }
-    annotator.annotateBlock(AnnoTypeSingle(AnnoType("line2", 'x')), rule2).write()
+    //val rule2: Int => Option[Char] = blockIndex => {
+    //  Some(labelMapSeq2(blockIndex))
+    //}
+    //annotator.annotateBlock(AnnoType("line2", 'x'), rule2).write()
 
   }
 
