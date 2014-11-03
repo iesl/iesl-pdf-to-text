@@ -41,6 +41,8 @@ object LineAnnotator {
       }
     }).map(_.toList).toList
 
+    //Line By Char 
+
     def firstAndLast(e: Element, ee: Element) = {
       val eeLast = ee.getText().size - 1
       (
@@ -89,6 +91,32 @@ object LineAnnotator {
     }
 
     annotator.annotateChar(AnnoTypeSingle(AnnoType("line", 'l')), rule).write()
+
+
+
+    //Line By Block
+
+    val labelMapSeq2 = lineList.toIndexedSeq.flatMap(line => {
+      line match {
+        case e::Nil => List('X')
+        case e::ee::Nil => List('x', '$')
+        case es => 
+          val first = es.head
+          val tail = es.tail
+          val middle = tail.init
+          val last = tail.last
+          val fl = firstAndLast(first, last) 
+          'x' +: middle.toIndexedSeq.map(e => {
+              '~'
+          }) :+ '$'
+      }
+    })
+
+
+    val rule2: (Int, Element) => Option[Char] = (blockIndex, e) => {
+      Some(labelMapSeq2(blockIndex))
+    }
+    annotator.annotateBlock(AnnoTypeSingle(AnnoType("line2", 'x')), rule2).write()
 
   }
 
