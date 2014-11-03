@@ -128,7 +128,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
     val startIndexMap = IntMap(bbSeq.zipWithIndex.flatMap { 
       case (block, i) => 
         rule(i) match {
-          case Some(label) if(label == 'l' || label == 'L') =>
+          case Some(label) if(label == B || label == U) =>
             Some(i -> List(0))
           case _ => None
         }

@@ -107,7 +107,6 @@ object LineAnnotator {
 
     //Line By Block
 
-    /*
     val labelMapSeq2 = lineList.toIndexedSeq.flatMap(line => {
       line match {
         case e::Nil => List(U)
@@ -137,7 +136,6 @@ object LineAnnotator {
 
     annoWithLine2.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine2).write()
       .annotateAnnoType(AnnoType("ref", 'r'), AnnoType("new", 'n'), ruleOnRef).write()
-      */
 
   }
 
