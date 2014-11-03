@@ -122,18 +122,23 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
 
   final def annotateBlock(annoTypeBox: AnnoType, rule: Int => Option[Char]): Annotator = {
 
+    val startIndexMap = IntMap(bbSeq.zipWithIndex.flatMap { 
+      case (block, i) => 
+        rule(i) match {
+          case Some(label) if(label == 'l' || label == 'L') =>
+            Some(i -> List(0))
+          case _ => None
+        }
+    }: _*)
+
     new Annotator(
       frozenDom,
       bbSeq.zipWithIndex.map { case (block, i) => {
-
         val labelMap = IntMap(rule(i).map((0 -> _)).toList: _ *)
-        //TO DO: check if annoMap contains the B label 
-        //if so, add annoMaps containing begin to end
-        //to index of annotype -> spanIndex -> charIndex -> list of annoMaps
         val annotation = Annotation(labelMap, annoTypeBox, List())
         addAnnotation(annotation, block)
       }},
-      annoAtomIndexMap
+      annoAtomIndexMap + (annoTypeBox -> startIndexMap)
     )
   }
 
