@@ -35,10 +35,6 @@ object Annotator {
   
   case class AnnoType(name: String, c: Char)
 
-  //sealed trait AnnoTypeBox
-  //case class AnnoTypeSingle(at: AnnoType) extends AnnoTypeBox
-  //case class AnnoTypeGroup(name: String, atList: List[AnnoType]) extends AnnoTypeBox
-
   case class Annotation(
     labelMap: IntMap[Label], 
     annoType: AnnoType,
@@ -68,14 +64,6 @@ object Annotator {
         ", constraint: " + a.constraintList.map(_.name).mkString("/")
       } else ""
 
-    //val annot = {
-    //  "type: " + "{" + (a.annoTypeBox match {
-    //    case AnnoTypeSingle(annoType) => 
-    //      annoType.name + ": " + annoType.c
-    //    case AnnoTypeGroup(name, list) => 
-    //      name + ": " + "{" + list.map(annoType => annoType.name + ": " + annoType.c).mkString(", ") + "}"
-    //  }) + "}"
-    //}
     val annot = {
       "type: " + "{" + (a.annoType match {
         case AnnoType(name, c) => name + ": " + c
@@ -135,7 +123,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
 
   def elements() = elementsOf(frozenDom.clone())
 
-  final def annotateBlock(annoTypeBox: AnnoType, rule: Int => Option[Label]): Annotator = {
+  final def annotateBlock(newAnnoType: AnnoType, rule: Int => Option[Label]): Annotator = {
 
     val startIndexMap = IntMap(bbSeq.zipWithIndex.flatMap { 
       case (block, i) => 
@@ -150,14 +138,14 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
       frozenDom,
       bbSeq.zipWithIndex.map { case (block, i) => {
         val labelMap = IntMap(rule(i).map((0 -> _)).toList: _ *)
-        val annotation = Annotation(labelMap, annoTypeBox, List())
+        val annotation = Annotation(labelMap, newAnnoType, List())
         addAnnotation(annotation, block)
       }},
-      annoAtomIndexMap + (annoTypeBox -> startIndexMap)
+      annoAtomIndexMap + (newAnnoType -> startIndexMap)
     )
   }
 
-  final def annotateChar(annoTypeBox: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
+  final def annotateChar(newAnnoType: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
 
     val es = elements().toIndexedSeq
 
@@ -184,14 +172,31 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
           val labelMap = IntMap((0 until es(i).getText().size).flatMap {charIndex => {
             rule(i, charIndex).map((charIndex -> _))
           } }: _ *)
-          val annotation = Annotation(labelMap, annoTypeBox, List())
+          val annotation = Annotation(labelMap, newAnnoType, List())
           addAnnotation(annotation, block)
       },
-      annoAtomIndexMap + (annoTypeBox -> startIndexMap)
+      annoAtomIndexMap + (newAnnoType -> startIndexMap)
     )
   }
 
-  final def annotateAnnoType(annoType: AnnoType, annoTypeBox: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
+  final def annotateAnnoType(annoType: AnnoType, newAnnoType: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
+
+    val es = elements().toIndexedSeq
+
+    val startIndexMap = annoAtomIndexMap(annoType).flatMap {
+      case (blockIndex, charIndexList) =>
+        charIndexList.flatMap(charIndex => {
+          rule(blockIndex, charIndex) match {
+            case Some(label) if(label == B || label == U) =>
+              Some(charIndex)
+            case _ => None
+          }
+        }).toList match {
+          case Nil => None
+          case xs => Some(blockIndex -> xs)
+        }
+    }
+
 
     new Annotator(
       frozenDom,
@@ -202,11 +207,11 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
             val labelMap = IntMap(charIndexList.flatMap(charIndex => {
               rule(blockIndex, charIndex).map((charIndex -> _))
             }): _*)
-            val annotation = Annotation(labelMap, annoTypeBox, List())
+            val annotation = Annotation(labelMap, newAnnoType, List())
             addAnnotation(annotation, block)
         }
       }},
-      annoAtomIndexMap
+      annoAtomIndexMap + (newAnnoType -> startIndexMap)
     )
 
   }

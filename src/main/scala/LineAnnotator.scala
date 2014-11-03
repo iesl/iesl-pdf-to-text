@@ -96,7 +96,12 @@ object LineAnnotator {
       Some(U)
     }
 
+    val ruleOnRef: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
+      Some(U)
+    }
+
     annoWithLine.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine).write()
+      .annotateAnnoType(AnnoType("ref", 'r'), AnnoType("new", 'n'), ruleOnRef).write()
 
 
 
@@ -131,7 +136,8 @@ object LineAnnotator {
     }
 
     annoWithLine2.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine2).write()
-    */
+      .annotateAnnoType(AnnoType("ref", 'r'), AnnoType("new", 'n'), ruleOnRef).write()
+      */
 
   }
 
