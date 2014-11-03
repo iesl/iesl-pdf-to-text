@@ -22,6 +22,14 @@ import org.jdom2.output.LineSeparator
 
 object Annotator {
 
+
+  sealed trait Label
+  case object B extends Label
+  case object I extends Label
+  case object O extends Label
+  case object L extends Label
+  case object U extends Label
+
   type Element = org.jdom2.Element
   type ElementFilter = org.jdom2.filter.ElementFilter
   
@@ -32,7 +40,7 @@ object Annotator {
   //case class AnnoTypeGroup(name: String, atList: List[AnnoType]) extends AnnoTypeBox
 
   case class Annotation(
-    annoMap: IntMap[Char], 
+    labelMap: IntMap[Label], 
     annoType: AnnoType,
     constraintList: List[AnnoType]
   )
@@ -42,10 +50,17 @@ object Annotator {
   private def renderAnnotation(a: Annotation, length: Int) = {
 
     val posi = (0 until length).foldLeft("")((stringAcc, i) => {
-      a.annoMap.get(i) match {
-        case Some(c) => stringAcc + c
-        case None => stringAcc + " "
-      }
+      stringAcc + (a.labelMap.get(i) match {
+        case Some(label) =>  
+           label match {
+            case B => a.annoType.c.toLower
+            case I => '~'
+            case O => '-'
+            case L => '$' 
+            case U => a.annoType.c.toUpper
+          }
+        case None => ' '
+      })
     })
 
     val constr = 
@@ -95,7 +110,7 @@ object Annotator {
 
 
   private def addAnnotation(anno: Annotation, bb: Block) = { 
-    //require(anno.annoMap.lastKey < bb.nextIndex)
+    //require(anno.labelMap.lastKey < bb.nextIndex)
     bb.copy(annotations = anno +: bb.annotations)
   }
 
@@ -120,7 +135,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
 
   def elements() = elementsOf(frozenDom.clone())
 
-  final def annotateBlock(annoTypeBox: AnnoType, rule: Int => Option[Char]): Annotator = {
+  final def annotateBlock(annoTypeBox: AnnoType, rule: Int => Option[Label]): Annotator = {
 
     val startIndexMap = IntMap(bbSeq.zipWithIndex.flatMap { 
       case (block, i) => 
@@ -142,7 +157,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
     )
   }
 
-  final def annotateChar(annoTypeBox: AnnoType, rule: (Int, Int) => Option[Char]): Annotator = {
+  final def annotateChar(annoTypeBox: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
 
     val es = elements().toIndexedSeq
 
@@ -150,7 +165,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
       case (block, i) => 
         (0 until es(i).getText().size).flatMap(charIndex => {
           rule(i, charIndex) match {
-            case Some(label) if(label == 'l' || label == 'L') =>
+            case Some(label) if(label == B || label == U) =>
               Some(charIndex)
             case _ => None
           }
@@ -176,7 +191,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
     )
   }
 
-  final def annotateAnnoType(annoType: AnnoType, annoTypeBox: AnnoType, rule: (Int, Int) => Option[Char]): Annotator = {
+  final def annotateAnnoType(annoType: AnnoType, annoTypeBox: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
 
     new Annotator(
       frozenDom,

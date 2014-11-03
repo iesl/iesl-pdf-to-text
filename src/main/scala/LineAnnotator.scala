@@ -46,12 +46,12 @@ object LineAnnotator {
     def firstAndLast(e: Element, ee: Element) = {
       val eeLast = ee.getText().size - 1
       (
-        ((1 until e.getText().size).foldLeft(IntMap[Char]())((annoMap, i) => {
-          annoMap + (i -> '~')
-        }) + (0 -> 'l') ),
-        ( (0 until eeLast).foldLeft(IntMap[Char]())((annoMap, i) => {
-          annoMap + (i -> '~') 
-        }) + (eeLast -> '$') )
+        ((1 until e.getText().size).foldLeft(IntMap[Label]())((annoMap, i) => {
+          annoMap + (i -> I)
+        }) + (0 -> B) ),
+        ( (0 until eeLast).foldLeft(IntMap[Label]())((annoMap, i) => {
+          annoMap + (i -> I) 
+        }) + (eeLast -> L) )
       )
     }
 
@@ -61,11 +61,11 @@ object LineAnnotator {
           val lastIndex = e.getText().size - 1
           IndexedSeq(
             if (lastIndex == 0) {
-              IntMap(0 -> 'L') 
+              IntMap(0 -> U) 
             } else {
-              (1 until lastIndex).foldLeft(IntMap[Char]())((annoMap, i) => {
-                annoMap + (i -> '~')
-              }) + (lastIndex -> '$') + (0 -> 'l')
+              (1 until lastIndex).foldLeft(IntMap[Label]())((annoMap, i) => {
+                annoMap + (i -> I)
+              }) + (lastIndex -> L) + (0 -> B)
             }
           )
         case e::ee::Nil => 
@@ -78,22 +78,22 @@ object LineAnnotator {
           val last = tail.last
           val fl = firstAndLast(first, last) 
           fl._1 +: middle.toIndexedSeq.map(e => {
-            (0 until e.getText().size).foldLeft(IntMap[Char]())((annoMap, i) => {
-              annoMap + (i -> '~')
+            (0 until e.getText().size).foldLeft(IntMap[Label]())((annoMap, i) => {
+              annoMap + (i -> I)
             })
           }) :+ fl._2
       }
     })
 
 
-    val rule: (Int, Int) => Option[Char] = (blockIndex, charIndex) => {
+    val rule: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
       labelMapSeq(blockIndex).get(charIndex)
     }
 
     val annoWithLine = annotator.annotateChar(AnnoType("line", 'l'), rule).write()
 
-    val ruleOnLine: (Int, Int) => Option[Char] = (blockIndex, charIndex) => {
-      Some('R')
+    val ruleOnLine: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
+      Some(U)
     }
 
     annoWithLine.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine).write()
@@ -102,34 +102,36 @@ object LineAnnotator {
 
     //Line By Block
 
+    /*
     val labelMapSeq2 = lineList.toIndexedSeq.flatMap(line => {
       line match {
-        case e::Nil => List('L')
-        case e::ee::Nil => List('l', '$')
+        case e::Nil => List(U)
+        case e::ee::Nil => List(B, L)
         case es => 
           val first = es.head
           val tail = es.tail
           val middle = tail.init
           val last = tail.last
           val fl = firstAndLast(first, last) 
-          'l' +: middle.toIndexedSeq.map(e => {
-              '~'
-          }) :+ '$'
+          B +: middle.toIndexedSeq.map(e => {
+             I 
+          }) :+ L 
       }
     })
 
 
-    val rule2: Int => Option[Char] = blockIndex => {
+    val rule2: Int => Option[Label] = blockIndex => {
       Some(labelMapSeq2(blockIndex))
     }
 
     val annoWithLine2 = annotator.annotateBlock(AnnoType("line", 'l'), rule2)
 
-    val ruleOnLine2: (Int, Int) => Option[Char] = (blockIndex, charIndex) => {
-      Some('R')
+    val ruleOnLine2: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
+      Some(U)
     }
 
     annoWithLine2.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine2).write()
+    */
 
   }
 
