@@ -152,22 +152,27 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
     )
   }
 
+
+  private def filterStartIndexes(blockIndex: Int, charIndexList: Iterable[Int], rule: (Int, Int) => Option[Label]) = {
+    charIndexList.flatMap(charIndex => {
+      rule(blockIndex, charIndex) match {
+        case Some(label) if(label == B || label == U) =>
+          Some(charIndex)
+        case _ => None
+      }
+    }).toList match {
+      case Nil => None
+      case xs => Some(blockIndex -> xs)
+    }
+  }
+
+
   final def annotateChar(newAnnoType: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
 
     val es = elements().toIndexedSeq
 
     val startIndexMap = IntMap(bbSeq.zipWithIndex.flatMap { 
-      case (block, i) => 
-        (0 until es(i).getText().size).flatMap(charIndex => {
-          rule(i, charIndex) match {
-            case Some(label) if(label == B || label == U) =>
-              Some(charIndex)
-            case _ => None
-          }
-        }).toList match {
-          case Nil => None
-          case xs => Some(i -> xs)
-        }
+      case (block, i) => filterStartIndexes(i, (0 until es(i).getText().size), rule)
     }: _*)
 
 
@@ -191,17 +196,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
     val es = elements().toIndexedSeq
 
     val startIndexMap = annoAtomIndexMap(annoType).flatMap {
-      case (blockIndex, charIndexList) =>
-        charIndexList.flatMap(charIndex => {
-          rule(blockIndex, charIndex) match {
-            case Some(label) if(label == B || label == U) =>
-              Some(charIndex)
-            case _ => None
-          }
-        }).toList match {
-          case Nil => None
-          case xs => Some(blockIndex -> xs)
-        }
+      case (blockIndex, charIndexList) => filterStartIndexes(blockIndex, charIndexList, rule)
     }
 
     new Annotator(
