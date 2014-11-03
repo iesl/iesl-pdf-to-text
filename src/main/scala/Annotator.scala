@@ -35,10 +35,16 @@ object Annotator {
   
   case class AnnoType(name: String, c: Char)
 
+
+  sealed trait Constraint
+  case object BlockCon extends Constraint
+  case object CharCon extends Constraint
+  case class AnnoTypeCon(annoType: AnnoType) extends Constraint
+
   case class Annotation(
     labelMap: IntMap[Label], 
     annoType: AnnoType,
-    constraintList: List[AnnoType]
+    constraint: Constraint 
   )
 
   case class Block(startIndex: Int, nextIndex: Int, annotations: List[Annotation])
@@ -59,10 +65,11 @@ object Annotator {
       })
     })
 
-    val constr = 
-      if (!a.constraintList.isEmpty) {
-        ", constraint: " + a.constraintList.map(_.name).mkString("/")
-      } else ""
+    val constr =  ", constraint: " + (a.constraint match {
+      case BlockCon => "block"
+      case CharCon => "char"
+      case AnnoTypeCon(atype) => atype.name
+    })
 
     val annot = {
       "type: " + "{" + (a.annoType match {
@@ -138,7 +145,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
       frozenDom,
       bbSeq.zipWithIndex.map { case (block, i) => {
         val labelMap = IntMap(rule(i).map((0 -> _)).toList: _ *)
-        val annotation = Annotation(labelMap, newAnnoType, List())
+        val annotation = Annotation(labelMap, newAnnoType, BlockCon)
         addAnnotation(annotation, block)
       }},
       annoAtomIndexMap + (newAnnoType -> startIndexMap)
@@ -172,7 +179,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
           val labelMap = IntMap((0 until es(i).getText().size).flatMap {charIndex => {
             rule(i, charIndex).map((charIndex -> _))
           } }: _ *)
-          val annotation = Annotation(labelMap, newAnnoType, List())
+          val annotation = Annotation(labelMap, newAnnoType, CharCon)
           addAnnotation(annotation, block)
       },
       annoAtomIndexMap + (newAnnoType -> startIndexMap)
@@ -197,7 +204,6 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
         }
     }
 
-
     new Annotator(
       frozenDom,
       bbSeq.zipWithIndex.map { case (block, blockIndex) => {
@@ -207,7 +213,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val ann
             val labelMap = IntMap(charIndexList.flatMap(charIndex => {
               rule(blockIndex, charIndex).map((charIndex -> _))
             }): _*)
-            val annotation = Annotation(labelMap, newAnnoType, List())
+            val annotation = Annotation(labelMap, newAnnoType, AnnoTypeCon(annoType))
             addAnnotation(annotation, block)
         }
       }},
