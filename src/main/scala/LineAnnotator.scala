@@ -27,7 +27,7 @@ object LineAnnotator {
 
     val annotator = new Annotator(dom)
 
-    val lineList = annotator.elements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
+    val lineList = annotator.getElements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
       queueAcc.lastOption match {
         case Some(currentLine) if (
             e.getAttribute("y").getValue() 
@@ -92,16 +92,48 @@ object LineAnnotator {
 
     val annoWithLine = annotator.annotateChar(AnnoType("line", 'l'), rule).write()
 
+
+
+
+    val getSegment = annoWithLine.getSegmentByStart(AnnoType("line", 'l')) _
+    val table = (annoWithLine.getBIndexList(AnnoType("line", 'l')).map {
+      case (blockIndex, charIndex) =>
+        val segment = getSegment(blockIndex, charIndex)
+
+        val blockBIndex = segment.firstKey
+        val charBIndex = segment(blockBIndex).firstKey
+        val blockLIndex = segment.lastKey
+        val charLIndex = segment(segment.lastKey).lastKey
+
+        val textMap = annoWithLine.getTextMapInRange(
+            blockBIndex, 
+            charBIndex,
+            blockLIndex,
+            charLIndex
+        )
+
+        val lineText = textMap.values.mkString("")
+        println(lineText)
+        println(lineText.size)
+        (blockIndex -> charIndex) -> (
+          if (lineText.size < 20) Some(B)
+          else if (lineText.size < 50) Some(I)
+          else if (lineText.size < 70) Some(O)
+          else if (lineText.size < 90) Some(U)
+          else Some(L)
+        )
+    }).toMap
+
     val ruleOnLine: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
-      Some(U)
+      table(blockIndex -> charIndex)
     }
 
-    val ruleOnRef: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
-      Some(U)
-    }
 
     annoWithLine.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine).write()
-      .annotateAnnoType(AnnoType("ref", 'r'), AnnoType("new", 'n'), ruleOnRef).write()
+
+
+
+    
 
 
 

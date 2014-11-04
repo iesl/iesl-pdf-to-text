@@ -47,7 +47,7 @@ object Annotator {
     constraint: Constraint 
   )
 
-  case class Block(startIndex: Int, nextIndex: Int, annotations: List[Annotation])
+  case class Block(startIndex: Int, nextIndex: Int, annotationMap: Map[AnnoType, Annotation])
 
   private def renderAnnotation(a: Annotation, length: Int) = {
 
@@ -100,16 +100,16 @@ object Annotator {
 
     val ruler = (topRulerList :+ bottomRuler).mkString("\n")
 
-    "\n" + bb.annotations.map(renderAnnotation(_, (next - bb.startIndex))).mkString("\n") + "\n" + ruler + "\n "
+    "\n" + bb.annotationMap.values.map(renderAnnotation(_, (next - bb.startIndex))).mkString("\n") + "\n" + ruler + "\n "
   }
 
 
   private def addAnnotation(anno: Annotation, bb: Block) = { 
     //require(anno.labelMap.lastKey < bb.nextIndex)
-    bb.copy(annotations = anno +: bb.annotations)
+    bb.copy(annotationMap = bb.annotationMap + (anno.annoType -> anno))
   }
 
-  private def elementsOf(dom: Document) = dom.getRootElement().getDescendants(new ElementFilter("tspan")).toIterable
+  private def getElementsOf(dom: Document) = dom.getRootElement().getDescendants(new ElementFilter("tspan")).toIterable
 
 }
 
@@ -118,17 +118,77 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
 
   def this(dom: Document) = this(
     dom,
-    elementsOf(dom).foldLeft(IndexedSeq[Block]())( (seqAcc, e) => {
+    getElementsOf(dom).foldLeft(IndexedSeq[Block]())( (seqAcc, e) => {
       val startIndex = if (seqAcc.isEmpty) 0 else seqAcc.last.nextIndex
       val nextIndex = startIndex + e.getText().size
-      seqAcc :+ Block(startIndex, nextIndex, List())
+      seqAcc :+ Block(startIndex, nextIndex, HashMap())
     } ),
     HashMap()
-  ) 
+  )
 
   private val frozenDom = dom.clone()
+  final def getElements() = getElementsOf(frozenDom.clone())
+  private val frozenElements = getElements().toIndexedSeq
 
-  def elements() = elementsOf(frozenDom.clone())
+
+  final def getBIndexList(annoType: AnnoType): List[(Int,Int)] = {
+    bIndexTableMap(annoType).toList.flatMap {
+      case (blockBIndex, charBIndexList) =>
+        charBIndexList.map(charBIndex => {
+          (blockBIndex, charBIndex)
+        })
+    }
+  }
+
+
+  final def getSegmentByStart(annoType: AnnoType)(blockIndex: Int, charIndex: Int): IntMap[IntMap[Label]] = {
+
+    val block = bbSeq(blockIndex)
+    block.annotationMap.get(annoType) match {
+      case None => getSegmentByStart(annoType)(blockIndex + 1, 0)
+      case Some(annotation) =>
+        val labelMap = annotation.labelMap
+        labelMap.keys.find(_ >= charIndex) match {
+          case None =>
+            getSegmentByStart(annoType)(blockIndex + 1, 0)
+          case Some(_charIndex) =>
+            val label = labelMap(_charIndex)
+            label match {
+              case L =>
+                IntMap(blockIndex -> IntMap(_charIndex -> L))
+              case U => 
+                IntMap(blockIndex -> IntMap(_charIndex -> U))
+              case label => 
+                val labelTable = getSegmentByStart(annoType)(blockIndex, _charIndex + 1)
+                labelTable.get(blockIndex) match {
+                  case None => 
+                    labelTable + (blockIndex -> IntMap(_charIndex -> label))
+                  case Some(rowIntMap) => 
+                    labelTable + (blockIndex -> (rowIntMap + (_charIndex -> label)))
+                }
+            }
+        }
+      }
+  }
+
+  final def getElementsInRange(blockIndex1: Int, blockIndex2: Int): IntMap[Element] = {
+    IntMap((blockIndex1 to blockIndex2).map(blockIndex =>{
+      blockIndex -> frozenElements(blockIndex).clone()
+    }): _*)
+  }
+
+  final def getTextMapInRange(blockIndex1: Int, charIndex1: Int, blockIndex2: Int, charIndex2: Int): IntMap[String] = {
+    getElementsInRange(blockIndex1, blockIndex2).map {
+      case (blockIndex, e) if blockIndex == blockIndex1 =>
+        blockIndex -> e.getText().drop(charIndex1)
+      case (blockIndex, e) if blockIndex == blockIndex2 =>
+        blockIndex -> e.getText().take(charIndex2 + 1)
+      case (blockIndex, e) => 
+        blockIndex -> e.getText()
+    }
+
+  }
+
 
   final def annotateBlock(newAnnoType: AnnoType, rule: Int => Option[Label]): Annotator = {
 
@@ -169,13 +229,11 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
 
   final def annotateChar(newAnnoType: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
 
-    val es = elements().toIndexedSeq
+    val es = frozenElements 
 
     val bIndexTable = IntMap(bbSeq.zipWithIndex.flatMap { 
       case (block, i) => filterStartIndexes(i, (0 until es(i).getText().size), rule)
     }: _*)
-
-
     
     new Annotator(
       frozenDom,
@@ -193,7 +251,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
 
   final def annotateAnnoType(annoType: AnnoType, newAnnoType: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
 
-    val es = elements().toIndexedSeq
+    val es = frozenElements 
 
     val bIndexTable = bIndexTableMap(annoType).flatMap {
       case (blockIndex, charIndexList) => filterStartIndexes(blockIndex, charIndexList, rule)
@@ -217,11 +275,10 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
 
   }
 
-
   final def write(): Annotator = {
 
     val writableDom = frozenDom.clone()
-    elementsOf(writableDom).zipWithIndex.foreach { case (e, i) => {
+    getElementsOf(writableDom).zipWithIndex.foreach { case (e, i) => {
       val block = bbSeq(i)
       e.setAttribute("bio", renderBlock(block))
     }}
