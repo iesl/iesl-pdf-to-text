@@ -16,8 +16,6 @@ import org.jdom2.util.IteratorIterable
 object DemoAnnotator {
   import Annotator._
 
-
-
   def main(args: Array[String]): Unit = {
     val filePath = args(0)
     val builder = new SAXBuilder()
@@ -31,7 +29,7 @@ object DemoAnnotator {
 
         val lineText = textMap.values.mkString("")
 
-        def loop(): Option[Label] = {
+        def getLabel(): Option[Label] = {
           readLine(s"line: ${lineText}: ") match {
             case "b" => Some(B)
             case "i" => Some(I)
@@ -41,12 +39,12 @@ object DemoAnnotator {
             case "n" => None
             case _ => {
               println("Please enter either b, i, o, l, u, or n")
-              loop()
+              getLabel()
             }
           }
         }
 
-        (blockIndex -> charIndex) -> loop()
+        (blockIndex -> charIndex) -> getLabel()
 
     }).toMap
 
@@ -55,6 +53,7 @@ object DemoAnnotator {
     annotator.annotateAnnoType(LineAnnotator.lineAnnoType, refAnnoType, (blockIndex, charIndex) => {
       table(blockIndex -> charIndex)
     }).write("/home/thomas/out.svg")
+
   }
 
 }

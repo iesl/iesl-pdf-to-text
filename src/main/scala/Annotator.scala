@@ -277,8 +277,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
 
 
   final def annotateAnnoType(annoType: AnnoType, newAnnoType: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
-
-    val es = frozenElements 
+    require(annoType.name != newAnnoType.name)
 
     val bIndexTable = bIndexTableMap(annoType).flatMap {
       case (blockIndex, charIndexList) => filterStartIndexes(blockIndex, charIndexList, rule)
