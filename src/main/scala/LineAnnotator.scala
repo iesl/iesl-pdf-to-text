@@ -17,16 +17,10 @@ object LineAnnotator {
   import Annotator._
 
 
-  def main(args: Array[String]): Unit = {
-
-    val filePath = args(0)
-
-    val builder = new SAXBuilder()
-    val dom = builder.build(new File(filePath)) 
+  val lineAnnoType = AnnoType("line", 'l')
 
 
-    val annotator = new Annotator(dom)
-
+  def addLineAnnotation(annotator: Annotator): Annotator =  {
     val lineList = annotator.getElements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
       queueAcc.lastOption match {
         case Some(currentLine) if (
@@ -86,91 +80,52 @@ object LineAnnotator {
     })
 
 
-    val rule: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
+    annotator.annotateChar(lineAnnoType, (blockIndex, charIndex) => {
       labelMapSeq(blockIndex).get(charIndex)
-    }
-
-    val annoWithLine = annotator.annotateChar(AnnoType("line", 'l'), rule).write()
-
-
-
-
-    val getSegment = annoWithLine.getSegmentByStart(AnnoType("line", 'l')) _
-    val table = (annoWithLine.getBIndexList(AnnoType("line", 'l')).map {
-      case (blockIndex, charIndex) =>
-        val segment = getSegment(blockIndex, charIndex)
-
-        val blockBIndex = segment.firstKey
-        val charBIndex = segment(blockBIndex).firstKey
-        val blockLIndex = segment.lastKey
-        val charLIndex = segment(segment.lastKey).lastKey
-
-        val textMap = annoWithLine.getTextMapInRange(
-            blockBIndex, 
-            charBIndex,
-            blockLIndex,
-            charLIndex
-        )
-
-        val lineText = textMap.values.mkString("")
-        println(lineText)
-        println(lineText.size)
-        (blockIndex -> charIndex) -> (
-          if (lineText.size < 20) Some(B)
-          else if (lineText.size < 50) Some(I)
-          else if (lineText.size < 70) Some(O)
-          else if (lineText.size < 90) Some(U)
-          else Some(L)
-        )
-    }).toMap
-
-    val ruleOnLine: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
-      table(blockIndex -> charIndex)
-    }
-
-
-    annoWithLine.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine).write()
-
-
-
-    
-
-
-
-    //Line By Block
-
-    /*
-    val labelMapSeq2 = lineList.toIndexedSeq.flatMap(line => {
-      line match {
-        case e::Nil => List(U)
-        case e::ee::Nil => List(B, L)
-        case es => 
-          val first = es.head
-          val tail = es.tail
-          val middle = tail.init
-          val last = tail.last
-          val fl = firstAndLast(first, last) 
-          B +: middle.toIndexedSeq.map(e => {
-             I 
-          }) :+ L 
-      }
     })
 
-
-    val rule2: Int => Option[Label] = blockIndex => {
-      Some(labelMapSeq2(blockIndex))
-    }
-
-    val annoWithLine2 = annotator.annotateBlock(AnnoType("line", 'l'), rule2)
-
-    val ruleOnLine2: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
-      Some(U)
-    }
-
-    annoWithLine2.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine2).write()
-      .annotateAnnoType(AnnoType("ref", 'r'), AnnoType("new", 'n'), ruleOnRef).write()
-    */
-
   }
+
+
+
+
+  
+
+
+
+  //Line By Block
+
+  /*
+  val labelMapSeq2 = lineList.toIndexedSeq.flatMap(line => {
+    line match {
+      case e::Nil => List(U)
+      case e::ee::Nil => List(B, L)
+      case es => 
+        val first = es.head
+        val tail = es.tail
+        val middle = tail.init
+        val last = tail.last
+        val fl = firstAndLast(first, last) 
+        B +: middle.toIndexedSeq.map(e => {
+           I 
+        }) :+ L 
+    }
+  })
+
+
+  val rule2: Int => Option[Label] = blockIndex => {
+    Some(labelMapSeq2(blockIndex))
+  }
+
+  val annoWithLine2 = annotator.annotateBlock(AnnoType("line", 'l'), rule2)
+
+  val ruleOnLine2: (Int, Int) => Option[Label] = (blockIndex, charIndex) => {
+    Some(U)
+  }
+
+  annoWithLine2.annotateAnnoType(AnnoType("line", 'l'), AnnoType("ref", 'r'), ruleOnLine2).write("/home/thomas/out.svg")
+    .annotateAnnoType(AnnoType("ref", 'r'), AnnoType("new", 'n'), ruleOnRef).write("/home/thomas/out.svg")
+  */
+
 
 }

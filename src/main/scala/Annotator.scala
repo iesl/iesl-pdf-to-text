@@ -3,6 +3,7 @@ package annotator
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintWriter
+import java.io.Writer
 
 import org.jdom2.Content
 import org.jdom2.input.SAXBuilder
@@ -19,6 +20,7 @@ import scala.collection.immutable.HashMap
 import org.jdom2.output.Format
 import org.jdom2.output.XMLOutputter
 import org.jdom2.output.LineSeparator
+import org.jdom2.output.support.AbstractXMLOutputProcessor
 
 object Annotator {
 
@@ -141,16 +143,16 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
   }
 
 
-  final def getSegmentByStart(annoType: AnnoType)(blockIndex: Int, charIndex: Int): IntMap[IntMap[Label]] = {
+  final def getSegment(annoType: AnnoType)(blockIndex: Int, charIndex: Int): IntMap[IntMap[Label]] = {
 
     val block = bbSeq(blockIndex)
     block.annotationMap.get(annoType) match {
-      case None => getSegmentByStart(annoType)(blockIndex + 1, 0)
+      case None => getSegment(annoType)(blockIndex + 1, 0)
       case Some(annotation) =>
         val labelMap = annotation.labelMap
         labelMap.keys.find(_ >= charIndex) match {
           case None =>
-            getSegmentByStart(annoType)(blockIndex + 1, 0)
+            getSegment(annoType)(blockIndex + 1, 0)
           case Some(_charIndex) =>
             val label = labelMap(_charIndex)
             label match {
@@ -159,7 +161,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
               case U => 
                 IntMap(blockIndex -> IntMap(_charIndex -> U))
               case label => 
-                val labelTable = getSegmentByStart(annoType)(blockIndex, _charIndex + 1)
+                val labelTable = getSegment(annoType)(blockIndex, _charIndex + 1)
                 labelTable.get(blockIndex) match {
                   case None => 
                     labelTable + (blockIndex -> IntMap(_charIndex -> label))
@@ -249,6 +251,7 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
     )
   }
 
+
   final def annotateAnnoType(annoType: AnnoType, newAnnoType: AnnoType, rule: (Int, Int) => Option[Label]): Annotator = {
 
     val es = frozenElements 
@@ -275,7 +278,20 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
 
   }
 
-  final def write(): Annotator = {
+  private val xmlOutputProcessor = new AbstractXMLOutputProcessor {
+    override def write(writer: Writer, str: String) = {
+      super.write(
+          writer, 
+          if (str == null) {
+            str
+          } else {
+            str.replaceAll("&#xA;", "\n").replaceAll("<svg:tspan", "\n<svg:tspan")
+          }
+      )
+    }
+  }
+
+  final def write(filePath: String): Annotator = {
 
     val writableDom = frozenDom.clone()
     getElementsOf(writableDom).zipWithIndex.foreach { case (e, i) => {
@@ -284,13 +300,11 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
     }}
 
     //format
-    val outputter = new XMLOutputter(Format.getPrettyFormat())
-    val modifiedXML = outputter.outputString(writableDom).replaceAll("&#xA;", "\n").replaceAll("<svg:tspan", "\n<svg:tspan")
+    val outputter = new XMLOutputter(Format.getPrettyFormat(), xmlOutputProcessor)
 
     //write
-    val out = new FileOutputStream("/home/thomas/out.svg")
-    val writer = new PrintWriter(out)
-    writer.print(modifiedXML)
+    val out = new FileOutputStream(filePath)
+    outputter.output(writableDom, out)
     this
 
   }
