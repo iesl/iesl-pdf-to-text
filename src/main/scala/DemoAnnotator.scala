@@ -26,18 +26,8 @@ object DemoAnnotator {
 
     val table = (annotator.getBIndexList(LineAnnotator.lineAnnoType).map {
       case (blockIndex, charIndex) =>
-        val segment = annotator.getSegment(LineAnnotator.lineAnnoType)(blockIndex, charIndex)
-        val blockBIndex = segment.firstKey
-        val charBIndex = segment(blockBIndex).firstKey
-        val blockLIndex = segment.lastKey
-        val charLIndex = segment(segment.lastKey).lastKey
 
-        val textMap = annotator.getTextMapInRange(
-            blockBIndex, 
-            charBIndex,
-            blockLIndex,
-            charLIndex
-        )
+        val textMap = annotator.getTextMap(LineAnnotator.lineAnnoType)(blockIndex, charIndex)
 
         val lineText = textMap.values.mkString("")
 

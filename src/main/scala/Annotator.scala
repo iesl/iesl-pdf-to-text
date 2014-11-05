@@ -179,6 +179,13 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
     }): _*)
   }
 
+  final def getElements(annoType: AnnoType)(blockIndex: Int, charIndex: Int): IntMap[Element] = {
+    val segment = getSegment(annoType)(blockIndex, charIndex)
+    val blockBIndex = segment.firstKey
+    val blockLIndex = segment.lastKey
+    getElementsInRange(blockBIndex, blockLIndex)
+  }
+
   final def getTextMapInRange(blockIndex1: Int, charIndex1: Int, blockIndex2: Int, charIndex2: Int): IntMap[String] = {
     getElementsInRange(blockIndex1, blockIndex2).map {
       case (blockIndex, e) if blockIndex == blockIndex1 =>
@@ -188,8 +195,25 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
       case (blockIndex, e) => 
         blockIndex -> e.getText()
     }
-
   }
+
+  final def getTextMap(annoType: AnnoType)(blockIndex: Int, charIndex: Int): IntMap[String] = {
+    val segment = getSegment(annoType)(blockIndex, charIndex)
+
+    val blockBIndex = segment.firstKey
+    val charBIndex = segment(blockBIndex).firstKey
+    val blockLIndex = segment.lastKey
+    val charLIndex = segment(segment.lastKey).lastKey
+
+    getTextMapInRange(
+        blockBIndex, 
+        charBIndex,
+        blockLIndex,
+        charLIndex
+    )
+  }
+
+  
 
 
   final def annotateBlock(newAnnoType: AnnoType, rule: Int => Option[Label]): Annotator = {
