@@ -80,17 +80,11 @@ object LineAnnotator {
     })
 
 
-    annotator.annotateChar(lineAnnoType, (blockIndex, charIndex) => {
+    annotator.annotateChar(AnnoTypeSingle(lineAnnoType), (blockIndex, charIndex) => {
       labelMapSeq(blockIndex).get(charIndex)
     })
 
   }
-
-
-
-
-  
-
 
 
   //Line By Block

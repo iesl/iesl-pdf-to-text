@@ -50,7 +50,7 @@ object DemoAnnotator {
 
     val refAnnoType = AnnoType("demo", 'd')
 
-    annotator.annotateAnnoType(LineAnnotator.lineAnnoType, refAnnoType, (blockIndex, charIndex) => {
+    annotator.annotateAnnoType(LineAnnotator.lineAnnoType, AnnoTypeSingle(refAnnoType), (blockIndex, charIndex) => {
       table(blockIndex -> charIndex)
     }).write("/home/thomas/out.svg")
 
