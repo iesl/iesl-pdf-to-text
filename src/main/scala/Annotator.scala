@@ -111,7 +111,7 @@ object Annotator {
 
     val ruler = (topRulerList :+ bottomRuler).mkString("\n")
 
-    "\n" + bb.annotationMap.values.map(renderAnnotation(_, (next - bb.startIndex))).mkString("\n") + "\n" + ruler + "\n "
+    "\n" + bb.annotationMap.values.toList.distinct.map(renderAnnotation(_, (next - bb.startIndex))).mkString("\n") + "\n" + ruler + "\n "
   }
 
 
