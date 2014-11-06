@@ -231,52 +231,6 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
     )
   }
 
-  
-
-
-  final def annotateBlock(annoTypeBox: AnnoTypeBox, rule: Int => Option[Label]): Annotator = {
-
-    val _bIndexTableMap = annoTypeBox match {
-      case AnnoTypeSingle(annoType) =>
-        val bIndexTable = IntMap(bbSeq.zipWithIndex.flatMap { 
-          case (block, i) => 
-            rule(i) match {
-              case Some(label) if(label == B || label == U) =>
-                Some(i -> List(0))
-              case _ => None
-            }
-        }: _*)
-        bIndexTableMap + (annoType -> bIndexTable)
-      case AnnoTypeGroup(_, annoTypeSeq) =>
-        val bIndexTableList = annoTypeSeq.zipWithIndex.map {
-          case (annoType, typeIndex) => 
-            val bIndexTable = IntMap(bbSeq.zipWithIndex.flatMap { 
-              case (block, i) => 
-                rule(i) match {
-                  case Some(label) if(label == Bm(typeIndex) || label == Um(typeIndex)) =>
-                    Some(i -> List(0))
-                  case _ => None
-                }
-            }: _*)
-            annoType -> bIndexTable
-        }
-
-        bIndexTableMap ++ bIndexTableList.toList
-    }
-
-
-    new Annotator(
-      frozenDom,
-      bbSeq.zipWithIndex.map { case (block, i) => {
-        val labelMap = IntMap(rule(i).map((0 -> _)).toList: _ *)
-        val annotation = Annotation(labelMap, annoTypeBox, BlockCon)
-        addAnnotation(annotation, block)
-      }},
-      _bIndexTableMap
-    )
-  }
-
-
   private def filterStartIndexes(blockIndex: Int, charIndexList: Iterable[Int], rule: (Int, Int) => Option[Label]) = {
     charIndexList.flatMap(charIndex => {
       rule(blockIndex, charIndex) match {
