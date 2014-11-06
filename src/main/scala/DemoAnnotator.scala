@@ -44,20 +44,20 @@ object DemoAnnotator {
           }
         }
 
-        //def getLabel(): Option[Label] = {
-        //  readLine(s"line: ${lineText}: ") match {
-        //    case "b" => Some(B)
-        //    case "i" => Some(I)
-        //    case "o" => Some(O)
-        //    case "l" => Some(L)
-        //    case "u" => Some(U)
-        //    case "n" => None
-        //    case _ => {
-        //      println("Please enter either b, i, o, l, u, or n")
-        //      getLabel()
-        //    }
-        //  }
-        //}
+//        def getLabel(): Option[Label] = {
+//          readLine(s"line: ${lineText}: ") match {
+//            case "b" => Some(B)
+//            case "i" => Some(I)
+//            case "o" => Some(O)
+//            case "l" => Some(L)
+//            case "u" => Some(U)
+//            case "n" => None
+//            case _ => {
+//              println("Please enter either b, i, o, l, u, or n")
+//              getLabel()
+//            }
+//          }
+//        }
 
         (blockIndex -> charIndex) -> getLabel()
 
@@ -68,7 +68,7 @@ object DemoAnnotator {
 
     annotator.annotateAnnoType(LineAnnotator.lineAnnoType, typeList, (blockIndex, charIndex) => {
       table(blockIndex -> charIndex)
-    }).write("/home/kzaporojets/out.svg")
+    }).write("/Users/klimzaporojets/out.svg")
 
   }
 
