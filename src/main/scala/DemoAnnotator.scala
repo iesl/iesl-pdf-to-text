@@ -68,7 +68,7 @@ object DemoAnnotator {
 
     annotator.annotateAnnoType(LineAnnotator.lineAnnoType, box, (blockIndex, charIndex) => {
       table(blockIndex -> charIndex)
-    }).write("/home/thomas/out.svg")
+    }).write("/home/kzaporojets/out.svg")
 
   }
 
