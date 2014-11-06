@@ -32,15 +32,15 @@ object DemoAnnotator {
 
         def getLabel() = {
           if (blockIndex % 3 == 0) {
-            Some(B(0))
+            Some(B('a'))
           } else if ((blockIndex - 1) % 3 == 0) {
             Some(L)
           } else if (blockIndex % 7 == 0) {
-            Some(B(1))
+            Some(B('b'))
           } else if ((blockIndex - 1) % 7 == 0) {
             Some(L)
           } else {
-            Some(U(1))
+            Some(U('b'))
           }
         }
 
