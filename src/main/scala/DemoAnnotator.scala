@@ -30,43 +30,29 @@ object DemoAnnotator {
         val lineText = textMap.values.mkString("")
 
 
-        def getLabel() = {
-          if (blockIndex % 3 == 0) {
-            Some(B('a'))
-          } else if ((blockIndex - 1) % 3 == 0) {
-            Some(L)
-          } else if (blockIndex % 7 == 0) {
-            Some(B('b'))
-          } else if ((blockIndex - 1) % 7 == 0) {
-            Some(L)
-          } else {
-            Some(U('b'))
-          }
-        }
-
         def getLabel(): Option[Label] = {
-          readLine(s"line: ${lineText}: ") match {
-            case "b" => Some(B('d'))
-            case "i" => Some(I)
-            case "o" => Some(O)
-            case "l" => Some(L)
-            case "u" => Some(U('d'))
-            case "n" => None
-            case _ => {
-              println("Please enter either b, i, o, l, u, or n")
-              getLabel()
-            }
-          }
+//          readLine(s"line: ${lineText}: ") match {
+//            case "b" => Some(B('d'))
+//            case "i" => Some(I)
+//            case "o" => Some(O)
+//            case "l" => Some(L)
+//            case "u" => Some(U('d'))
+//            case "n" => None
+//            case _ => {
+//              println("Please enter either b, i, o, l, u, or n")
+//              getLabel()
+//            }
+//          }
+          Some(O)
         }
 
         (blockIndex -> charIndex) -> getLabel()
 
     }).toMap
 
-    //val refAnnoType = AnnoType("demo", 'd')
-    val typeList = List(AnnoType("aaa", 'a'), AnnoType("bbb", 'b'))
+    val refAnnoType = List(AnnoType("demo", 'd'))
 
-    annotator.annotateAnnoType(LineAnnotator.lineAnnoType, typeList, (blockIndex, charIndex) => {
+    annotator.annotateAnnoType(LineAnnotator.lineAnnoType, refAnnoType, (blockIndex, charIndex) => {
       table(blockIndex -> charIndex)
     }).write("/Users/klimzaporojets/out.svg")
 
