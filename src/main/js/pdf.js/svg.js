@@ -21,6 +21,8 @@
 
 var _ = require('underscore');
 
+var Image = require('canvas').Image;
+
 //#if (GENERIC || SINGLE_FILE)
 var SVG_DEFAULTS = {
   fontStyle: 'normal',

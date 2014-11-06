@@ -6585,6 +6585,8 @@ PDFJS.AnnotationUtils = AnnotationUtils;
 
 var _ = require('underscore');
 
+var Image = require('canvas').Image;
+
 var SVG_DEFAULTS = {
   fontStyle: 'normal',
   fontWeight: 'normal',
