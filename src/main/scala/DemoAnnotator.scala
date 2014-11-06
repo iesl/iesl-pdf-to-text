@@ -32,15 +32,15 @@ object DemoAnnotator {
 
         def getLabel() = {
           if (blockIndex % 3 == 0) {
-            Some(Bm(0))
+            Some(B(0))
           } else if ((blockIndex - 1) % 3 == 0) {
             Some(L)
           } else if (blockIndex % 7 == 0) {
-            Some(Bm(1))
+            Some(B(1))
           } else if ((blockIndex - 1) % 7 == 0) {
             Some(L)
           } else {
-            Some(Um(1))
+            Some(U(1))
           }
         }
 
@@ -64,9 +64,9 @@ object DemoAnnotator {
     }).toMap
 
     //val refAnnoType = AnnoType("demo", 'd')
-    val box = AnnoTypeGroup("abe", List(AnnoType("aaa", 'a'), AnnoType("bbb", 'b')))
+    val typeList = List(AnnoType("aaa", 'a'), AnnoType("bbb", 'b'))
 
-    annotator.annotateAnnoType(LineAnnotator.lineAnnoType, box, (blockIndex, charIndex) => {
+    annotator.annotateAnnoType(LineAnnotator.lineAnnoType, typeList, (blockIndex, charIndex) => {
       table(blockIndex -> charIndex)
     }).write("/home/kzaporojets/out.svg")
 
