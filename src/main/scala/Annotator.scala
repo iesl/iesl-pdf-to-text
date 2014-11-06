@@ -142,34 +142,43 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
 
   final def getSegment(annoType: AnnoType)(blockIndex: Int, charIndex: Int): IntMap[IntMap[Label]] = {
 
-    val block = bbSeq(blockIndex)
-    block.annotationMap.get(annoType) match {
-      case None => getSegment(annoType)(blockIndex + 1, 0)
-      case Some(annotation) =>
-        val labelMap = annotation.labelMap
-        labelMap.keys.find(_ >= charIndex) match {
-          case None =>
-            getSegment(annoType)(blockIndex + 1, 0)
-          case Some(_charIndex) =>
-            val label = labelMap(_charIndex)
-            label match {
-              case L =>
-                IntMap(blockIndex -> IntMap(_charIndex -> L))
-              case U(char) if annoType.c == char => 
-                IntMap(blockIndex -> IntMap(_charIndex -> U(char)))
-              case U(_) => 
-                getSegment(annoType)(blockIndex, _charIndex + 1)
-              case label => 
-                val labelTable = getSegment(annoType)(blockIndex, _charIndex + 1)
-                labelTable.get(blockIndex) match {
-                  case None => 
-                    labelTable + (blockIndex -> IntMap(_charIndex -> label))
-                  case Some(rowIntMap) => 
-                    labelTable + (blockIndex -> (rowIntMap + (_charIndex -> label)))
-                }
-            }
+    def loop(foundFirst: Boolean, blockIndex: Int, charIndex: Int): IntMap[IntMap[Label]] = {
+      val block = bbSeq(blockIndex)
+      block.annotationMap.get(annoType) match {
+        case None => loop(foundFirst, blockIndex + 1, 0)
+        case Some(annotation) =>
+          val labelMap = annotation.labelMap
+          labelMap.keys.find(_ >= charIndex) match {
+            case None =>
+              loop(foundFirst, blockIndex + 1, 0)
+            case Some(_charIndex) =>
+              val label = labelMap(_charIndex)
+              (foundFirst, label) match {
+                case (false, B(char)) if annoType.c == char => loop(true, blockIndex, _charIndex) 
+                case (false, U(char)) if annoType.c == char => loop(true, blockIndex, _charIndex) 
+                case (false, _) => loop(false, blockIndex, _charIndex + 1)
+
+                case (true, L) =>
+                  IntMap(blockIndex -> IntMap(_charIndex -> L))
+                case (true, U(char)) if annoType.c == char => 
+                  IntMap(blockIndex -> IntMap(_charIndex -> U(char)))
+                case (true, U(_)) => 
+                  loop(foundFirst, blockIndex, _charIndex + 1)
+                case (true, label) => 
+                  val labelTable = loop(foundFirst, blockIndex, _charIndex + 1)
+                  labelTable.get(blockIndex) match {
+                    case None => 
+                      labelTable + (blockIndex -> IntMap(_charIndex -> label))
+                    case Some(rowIntMap) => 
+                      labelTable + (blockIndex -> (rowIntMap + (_charIndex -> label)))
+                  }
+              }
+          }
         }
-      }
+    }
+
+    loop(false, blockIndex, charIndex)
+
   }
 
   final def getElementsInRange(blockIndex1: Int, blockIndex2: Int): IntMap[Element] = {
