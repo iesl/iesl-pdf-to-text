@@ -22,10 +22,10 @@ object DemoAnnotator {
     val dom = builder.build(new File(filePath)) 
     val annotator = LineAnnotator.addLineAnnotation(new Annotator(dom))
 
-    val table = (annotator.getBIndexList(LineAnnotator.lineAnnoType).map {
+    val table = (annotator.getBIndexList(LineAnnotator.lineSegmentType).map {
       case (blockIndex, charIndex) =>
 
-        val textMap = annotator.getTextMap(LineAnnotator.lineAnnoType)(blockIndex, charIndex)
+        val textMap = annotator.getTextMap(LineAnnotator.lineSegmentType)(blockIndex, charIndex)
 
         val lineText = textMap.values.mkString("")
 
@@ -63,10 +63,10 @@ object DemoAnnotator {
 
     }).toMap
 
-    //val refAnnoType = AnnoType("demo", 'd')
-    val typeList = List(AnnoType("aaa", 'a'), AnnoType("bbb", 'b'))
+    //val refSegmentType = SegmentType("demo", 'd')
+    val typeList = List(SegmentType("aaa", 'a'), SegmentType("bbb", 'b'))
 
-    annotator.annotateAnnoType(LineAnnotator.lineAnnoType, typeList, (blockIndex, charIndex) => {
+    annotator.annotateSegments(LineAnnotator.lineSegmentType, typeList, (blockIndex, charIndex) => {
       table(blockIndex -> charIndex)
     }).write("/home/thomas/out.svg")
 

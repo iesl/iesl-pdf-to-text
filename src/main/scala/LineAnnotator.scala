@@ -17,7 +17,7 @@ object LineAnnotator {
   import Annotator._
 
 
-  val lineAnnoType = AnnoType("line", 'l')
+  val lineSegmentType = SegmentType("line", 'l')
 
 
   def addLineAnnotation(annotator: Annotator): Annotator =  {
@@ -80,7 +80,7 @@ object LineAnnotator {
     })
 
 
-    annotator.annotateChar(List(lineAnnoType), (blockIndex, charIndex) => {
+    annotator.annotateChars(List(lineSegmentType), (blockIndex, charIndex) => {
       labelMapSeq(blockIndex).get(charIndex)
     })
 
