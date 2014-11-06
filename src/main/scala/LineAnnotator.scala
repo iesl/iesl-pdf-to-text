@@ -42,7 +42,7 @@ object LineAnnotator {
       (
         ((1 until e.getText().size).foldLeft(IntMap[Label]())((annoMap, i) => {
           annoMap + (i -> I)
-        }) + (0 -> B) ),
+        }) + (0 -> B(0)) ),
         ( (0 until eeLast).foldLeft(IntMap[Label]())((annoMap, i) => {
           annoMap + (i -> I) 
         }) + (eeLast -> L) )
@@ -55,11 +55,11 @@ object LineAnnotator {
           val lastIndex = e.getText().size - 1
           IndexedSeq(
             if (lastIndex == 0) {
-              IntMap(0 -> U) 
+              IntMap(0 -> U(0)) 
             } else {
               (1 until lastIndex).foldLeft(IntMap[Label]())((annoMap, i) => {
                 annoMap + (i -> I)
-              }) + (lastIndex -> L) + (0 -> B)
+              }) + (lastIndex -> L) + (0 -> B(0))
             }
           )
         case e::ee::Nil => 
@@ -80,7 +80,7 @@ object LineAnnotator {
     })
 
 
-    annotator.annotateChar(AnnoTypeSingle(lineAnnoType), (blockIndex, charIndex) => {
+    annotator.annotateChar(List(lineAnnoType), (blockIndex, charIndex) => {
       labelMapSeq(blockIndex).get(charIndex)
     })
 
