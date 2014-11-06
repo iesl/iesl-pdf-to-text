@@ -44,20 +44,20 @@ object DemoAnnotator {
           }
         }
 
-//        def getLabel(): Option[Label] = {
-//          readLine(s"line: ${lineText}: ") match {
-//            case "b" => Some(B)
-//            case "i" => Some(I)
-//            case "o" => Some(O)
-//            case "l" => Some(L)
-//            case "u" => Some(U)
-//            case "n" => None
-//            case _ => {
-//              println("Please enter either b, i, o, l, u, or n")
-//              getLabel()
-//            }
-//          }
-//        }
+        def getLabel(): Option[Label] = {
+          readLine(s"line: ${lineText}: ") match {
+            case "b" => Some(B('d'))
+            case "i" => Some(I)
+            case "o" => Some(O)
+            case "l" => Some(L)
+            case "u" => Some(U('d'))
+            case "n" => None
+            case _ => {
+              println("Please enter either b, i, o, l, u, or n")
+              getLabel()
+            }
+          }
+        }
 
         (blockIndex -> charIndex) -> getLabel()
 
