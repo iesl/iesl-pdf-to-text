@@ -21,53 +21,52 @@ object DemoAnnotator {
     val builder = new SAXBuilder()
     val dom = builder.build(new File(filePath)) 
     val annotator = LineAnnotator.addLineAnnotation(new Annotator(dom))
+    //annotator.write("/home/thomas/out.svg")
 
-    val table = (annotator.getBIndexList(LineAnnotator.lineSegmentType).map {
+    /*
+    val table = (annotator.getBIndexList(LineAnnotator.segmentType).map {
       case (blockIndex, charIndex) =>
 
-        val textMap = annotator.getTextMap(LineAnnotator.lineSegmentType)(blockIndex, charIndex)
+        val textMap = annotator.getTextMap(LineAnnotator.segmentType)(blockIndex, charIndex)
 
         val lineText = textMap.values.mkString("")
 
 
-        def getLabel() = {
-          if (blockIndex % 3 == 0) {
-            Some(B('a'))
-          } else if ((blockIndex - 1) % 3 == 0) {
-            Some(L)
-          } else if (blockIndex % 7 == 0) {
-            Some(B('b'))
-          } else if ((blockIndex - 1) % 7 == 0) {
-            Some(L)
-          } else {
-            Some(U('b'))
+
+        def getLabel(): Option[Label] = {
+          readLine(s"line: ${lineText}: ") match {
+            case "b" => Some(B)
+            case "i" => Some(I)
+            case "o" => Some(O)
+            case "l" => Some(L)
+            case "u" => Some(U)
+            case "n" => None
+            case _ => {
+              println("Please enter either b, i, o, l, u, or n")
+              getLabel()
+            }
           }
         }
-
-        //def getLabel(): Option[Label] = {
-        //  readLine(s"line: ${lineText}: ") match {
-        //    case "b" => Some(B)
-        //    case "i" => Some(I)
-        //    case "o" => Some(O)
-        //    case "l" => Some(L)
-        //    case "u" => Some(U)
-        //    case "n" => None
-        //    case _ => {
-        //      println("Please enter either b, i, o, l, u, or n")
-        //      getLabel()
-        //    }
-        //  }
-        //}
 
         (blockIndex -> charIndex) -> getLabel()
 
     }).toMap
+    */
 
-    //val refSegmentType = SegmentType("demo", 'd')
-    val typeList = List(SegmentType("aaa", 'a'), SegmentType("bbb", 'b'))
 
-    annotator.annotateSegments(LineAnnotator.lineSegmentType, typeList, (blockIndex, charIndex) => {
-      table(blockIndex -> charIndex)
+
+    val abc = annotator.annotate(List("aaa" -> 'a'), Single(SegmentCon(LineAnnotator.segmentType)), (blockIndex, charIndex) => {
+        if (blockIndex % 2 == 0) {
+          Some(B('a'))
+        } else  {
+          None
+          //Some(B('b'))
+        }
+    }).write("/home/thomas/out.svg")
+    val aType = SegmentType("aaa", 'a', Single(SegmentCon(LineAnnotator.segmentType)))
+
+    abc.annotate(List("name" -> 'n'), Range(SegmentCon(aType), CharCon), (blockIndex, charIndex) => {
+        Some(U('n'))
     }).write("/home/thomas/out.svg")
 
   }
