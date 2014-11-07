@@ -192,6 +192,8 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
                     IntMap(blockIndex -> IntMap(_charIndex -> U(char)))
                   case (true, U(_)) => 
                     loop(foundFirst, blockIndex, _charIndex + 1)
+                  case (true, B(char)) if segmentType.c != char => 
+                    loop(foundFirst, blockIndex, _charIndex + 1)
                   case (true, label) => 
                     val labelTable = loop(foundFirst, blockIndex, _charIndex + 1)
                     labelTable.get(blockIndex) match {
@@ -352,8 +354,6 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
                 val (blockIndex, charIndex) = pair
                 if (bIndexTableAcc.contains(blockIndex) && bIndexTableAcc(blockIndex).contains(charIndex)) {
 
-
-
                   val segment = getSegment(segmentType)(blockIndex, charIndex)
                   segment.foldLeft(acc) {
                     case (_acc, (bI, labelMap)) =>
@@ -388,7 +388,6 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
 
     val annotatableIndexTable = getAnnotatableIndexTable(constraintRange)
 
-
     val segmentTypeSeq = nameCharPairSeq.map {
       case (name, char) =>
         SegmentType(name, char, constraintRange)
@@ -410,7 +409,8 @@ class Annotator(private val dom: Document, val bbSeq: IndexedSeq[Block], val bIn
       val bIndexTableList = segmentTypeSeq.map {
         case _segmentType => 
           val bIndexTable = annotatableIndexTable.flatMap {
-            case (blockIndex, charIndexList) => filterStartIndexes(_segmentType.c, blockIndex, charIndexList, rule)
+            case (blockIndex, charIndexList) => 
+              filterStartIndexes(_segmentType.c, blockIndex, charIndexList, rule)
           }
           (_segmentType -> bIndexTable)
       }
