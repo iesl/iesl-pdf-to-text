@@ -16,8 +16,7 @@ import org.jdom2.util.IteratorIterable
 object LineAnnotator {
   import Annotator._
 
-
-  val lineSegmentType = SegmentType("line", 'l')
+  val segmentType = AnnotationType("line", 'l', Single(CharCon))
 
 
   def addLineAnnotation(annotator: Annotator): Annotator =  {
@@ -80,7 +79,7 @@ object LineAnnotator {
     })
 
 
-    annotator.annotateChars(List(lineSegmentType), (blockIndex, charIndex) => {
+    annotator.annotate(List("line" -> 'l'), Single(CharCon), (blockIndex, charIndex) => {
       labelMapSeq(blockIndex).get(charIndex)
     })
 
