@@ -64,8 +64,8 @@ object DemoAnnotator {
           None
         }
     }).write("/home/thomas/out.svg")
-    val atype = SegmentType("aaa", 'a', Single(SegmentCon(LineAnnotator.segmentType)))
-    val btype = SegmentType("bbb", 'b', Single(SegmentCon(LineAnnotator.segmentType)))
+    val atype = AnnotationType("aaa", 'a', Single(SegmentCon(LineAnnotator.segmentType)))
+    val btype = AnnotationType("bbb", 'b', Single(SegmentCon(LineAnnotator.segmentType)))
 
     abc.annotate(List("name" -> 'n'), Range(SegmentCon(atype), CharCon), (blockIndex, charIndex) => {
         Some(U('n'))

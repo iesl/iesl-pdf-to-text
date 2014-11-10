@@ -16,7 +16,7 @@ import org.jdom2.util.IteratorIterable
 object LineAnnotator {
   import Annotator._
 
-  val segmentType = SegmentType("line", 'l', Single(CharCon))
+  val segmentType = AnnotationType("line", 'l', Single(CharCon))
 
 
   def addLineAnnotation(annotator: Annotator): Annotator =  {
