@@ -52,7 +52,7 @@ object Annotator {
     annotationTypeSeq: Seq[AnnotationType]
   )
 
-  case class AnnotationInfo(annotationType: AnnotationType, bIndexTable: IntMap[Set[Int]])
+  case class AnnotationInfo(annotationType: AnnotationType, bIndexPairSet: Set[(Int, Int)])
 
   case class AnnotationBlock(startIndex: Int, nextIndex: Int, annotationMap: Map[AnnotationType, AnnotationSpan])
 
@@ -156,19 +156,13 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
 
   }
 
-  private val charBIndexTable = IntMap(frozenElements.zipWithIndex.map { 
-    case (e, blockIndex) => blockIndex -> (0 until e.getText().size).toSet
-  }: _*)
+  private val charBIndexPairSet = frozenElements.zipWithIndex.flatMap { 
+    case (e, blockIndex) => 
+      (0 until e.getText().size).map(charIndex => {
+        blockIndex -> charIndex
+      })
+  } toSet
 
-
-  final def getBIndexList(annotationTypeName: String): List[(Int,Int)] = {
-    annotationInfoMap(annotationTypeName).bIndexTable.toList.flatMap {
-      case (blockBIndex, charBIndexList) =>
-        charBIndexList.map(charBIndex => {
-          (blockBIndex, charBIndex)
-        })
-    }
-  }
 
   final def getSegment(annotationTypeName: String)(blockIndex: Int, charIndex: Int): Segment = {
 
@@ -229,9 +223,13 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
 
   final def getElements(annotationTypeName: String)(blockIndex: Int, charIndex: Int): IntMap[Element] = {
     val segment = getSegment(annotationTypeName)(blockIndex, charIndex)
-    val blockBIndex = segment.firstKey
-    val blockLIndex = segment.lastKey
-    getElementsInRange(blockBIndex, blockLIndex)
+    if (segment.isEmpty) {
+      IntMap[Element]()
+    } else {
+      val blockBIndex = segment.firstKey
+      val blockLIndex = segment.lastKey
+      getElementsInRange(blockBIndex, blockLIndex)
+    }
   }
 
   final def getTextMapInRange(blockIndex1: Int, charIndex1: Int, blockIndex2: Int, charIndex2: Int): IntMap[String] = {
@@ -248,78 +246,62 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
   final def getTextMap(annotationTypeName: String)(blockIndex: Int, charIndex: Int): IntMap[String] = {
     val segment = getSegment(annotationTypeName)(blockIndex, charIndex)
 
-    val blockBIndex = segment.firstKey
-    val charBIndex = segment(blockBIndex).firstKey
-    val blockLIndex = segment.lastKey
-    val charLIndex = segment(segment.lastKey).lastKey
-
-    getTextMapInRange(
-        blockBIndex, 
-        charBIndex,
-        blockLIndex,
-        charLIndex
-    )
-  }
-
-  private def filterStartIndexes(char: Char, blockIndex: Int, charIndexSet: Set[Int], rule: (Int, Int) => Option[Label]) = {
-    val xs = charIndexSet.flatMap(charIndex => {
-      rule(blockIndex, charIndex) match {
-        case Some(label) if(label == B(char) || label == U(char)) =>
-          Some(charIndex)
-        case _ => None
-      }
-    }) 
-
-    if (xs.isEmpty) {
-      None
+    if (segment.isEmpty) {
+      IntMap[String]()
     } else {
-      Some(blockIndex -> xs)
+      val blockBIndex = segment.firstKey
+      val charBIndex = segment(blockBIndex).firstKey
+      val blockLIndex = segment.lastKey
+      val charLIndex = segment(segment.lastKey).lastKey
+
+      getTextMapInRange(
+          blockBIndex, 
+          charBIndex,
+          blockLIndex,
+          charLIndex
+      )
     }
   }
 
-  private def getAnnotatableIndexTable(constraintRange: ConstraintRange) = {
+  final def getAnnotatableIndexPairSet(constraintRange: ConstraintRange): Set[(Int, Int)] = {
     constraintRange match {
       case Single(CharCon) =>
-        charBIndexTable
+        charBIndexPairSet
       case Single(SegmentCon(annotationTypeName)) =>
-        annotationInfoMap(annotationTypeName).bIndexTable
-      case Range(startCon, endCon) =>
-        def loop(bIndexTableAcc: IntMap[Set[Int]], constraint: Constraint): IntMap[Set[Int]] = {
+        annotationInfoMap(annotationTypeName).bIndexPairSet
+      case Range(SegmentCon(annotationTypeName), endCon) =>
+        def loop(bIndexPairSetAcc: Set[(Int, Int)], constraint: Constraint): Set[(Int, Int)] = {
           (constraint, endCon) match {
             case (CharCon, SegmentCon(_)) => 
               require(false, "constraintRange's end does not follow from its start")
-              IntMap[Set[Int]]()
+              Set[(Int, Int)]()
             case (x, y) if (x == y) => 
-              bIndexTableAcc
+              bIndexPairSetAcc
             case (SegmentCon(annotationTypeName), _) =>
-              val _bIndexTableAcc = getBIndexList(annotationTypeName).foldLeft(IntMap[Set[Int]]())((acc, pair) => { 
-                val (blockIndex, charIndex) = pair
-                if (bIndexTableAcc.contains(blockIndex) && bIndexTableAcc(blockIndex).contains(charIndex)) {
 
-                  val segment = getSegment(annotationTypeName)(blockIndex, charIndex)
-                  segment.foldLeft(acc) {
-                    case (_acc, (bI, labelMap)) =>
-                      _acc.get(bI) match {
-                        case None => _acc + (bI -> labelMap.keys.toSet)
-                        case Some(charIndexSet) => _acc + (bI -> (charIndexSet ++ labelMap.keys))
-                      }
-                  }
-                } else {
-                  acc
-                }
+              val _bIndexPairSetAcc = bIndexPairSetAcc.flatMap(pair => { 
+                val (blockIndex, charIndex) = pair
+                val segment = getSegment(annotationTypeName)(blockIndex, charIndex)
+                segment.keys.flatMap(bI => {
+                  segment(bI).keys.map(cI => {
+                    bI -> cI
+                  })
+                })
               })
 
               val annotationType = annotationInfoMap(annotationTypeName).annotationType
-
               val _constraint = annotationType.constraintRange match {
                 case Single(c) => c
                 case Range(_, c) => c
               }
 
-              loop(_bIndexTableAcc, _constraint)
+              loop(_bIndexPairSetAcc, _constraint)
           }
         }
-        loop(charBIndexTable, startCon)
+        loop(annotationInfoMap(annotationTypeName).bIndexPairSet, SegmentCon(annotationTypeName))
+      case _ =>
+        require(false, "constraintRange is illformed")
+        Set[(Int, Int)]()
     }
   }
 
@@ -330,38 +312,48 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
       rule: (Int, Int) => Option[Label]
   ) = {
 
-    val annotatableIndexTable = getAnnotatableIndexTable(constraintRange)
+    val annotatableIndexPairSet = getAnnotatableIndexPairSet(constraintRange)
 
     val annotationTypeSeq = nameCharPairSeq.map {
       case (name, char) =>
         AnnotationType(name, char, constraintRange)
     }
 
+    val labelTable = annotatableIndexPairSet.foldLeft(IntMap[IntMap[Label]]()) {
+      case (tableAcc, (blockIndex, charIndex)) =>
+        val labelOp = rule(blockIndex, charIndex)
+        labelOp match {
+          case Some(label) if tableAcc.contains(blockIndex) =>
+            tableAcc + (blockIndex -> (tableAcc(blockIndex) + (charIndex -> label)))
+          case Some(label) =>
+            tableAcc + (blockIndex -> IntMap(charIndex -> label))
+          case None => tableAcc
+        }
+    }
+
     val _annotationBlockSeq = annotationBlockSeq.zipWithIndex.map { case (block, blockIndex) => {
-      annotatableIndexTable.get(blockIndex) match {
+      labelTable.get(blockIndex) match {
         case None => block
-        case Some(charIndexSet) =>
-          val labelMap = IntMap(charIndexSet.flatMap(charIndex => {
-            rule(blockIndex, charIndex).map((charIndex -> _))
-          }).toSeq: _*)
-          if (labelMap.isEmpty) {
-            block
-          } else {
-            val annotation = AnnotationSpan(labelMap, annotationTypeSeq)
-            addAnnotation(annotation, block)
-          }
+        case Some(labelMap) =>
+          val annotation = AnnotationSpan(labelMap, annotationTypeSeq)
+          addAnnotation(annotation, block)
       }
     }}
 
     val _annotationInfoMap =  {
       val annotationInfoList = annotationTypeSeq.map {
         case _annotationType => 
-          val bIndexTable = annotatableIndexTable.flatMap {
-            case (blockIndex, charIndexSet) => 
-              filterStartIndexes(_annotationType.c, blockIndex, charIndexSet, rule)
+          val bIndexPairSet = annotatableIndexPairSet.flatMap {
+            case (blockIndex, charIndex) => 
+              val char = _annotationType.c
+              rule(blockIndex, charIndex) match {
+                case Some(label) if label == B(char) || label == U(char) =>
+                  Some(blockIndex -> charIndex)
+                case _ => None
+              }
           }
 
-          _annotationType.name -> AnnotationInfo(_annotationType, bIndexTable)
+          _annotationType.name -> AnnotationInfo(_annotationType, bIndexPairSet)
           
       }
 
