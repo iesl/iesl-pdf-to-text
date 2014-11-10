@@ -55,7 +55,7 @@ object DemoAnnotator {
 
 
 
-    val abc = annotator.annotate(List("aaa" -> 'a', "bbb" -> 'b'), Single(SegmentCon(LineAnnotator.segmentType)), (blockIndex, charIndex) => {
+    val abc = annotator.annotate(List("aaa" -> 'a', "bbb" -> 'b'), Single(SegmentCon("line")), (blockIndex, charIndex) => {
         if (blockIndex % 3 == 0) {
           Some(B('a'))
         } else if (blockIndex % 3 == 1) {
@@ -64,10 +64,10 @@ object DemoAnnotator {
           None
         }
     }).write("/home/thomas/out.svg")
-    val atype = AnnotationType("aaa", 'a', Single(SegmentCon(LineAnnotator.segmentType)))
-    val btype = AnnotationType("bbb", 'b', Single(SegmentCon(LineAnnotator.segmentType)))
+    val atype = AnnotationType("aaa", 'a', Single(SegmentCon("line")))
+    val btype = AnnotationType("bbb", 'b', Single(SegmentCon("line")))
 
-    abc.annotate(List("name" -> 'n'), Range(SegmentCon(atype), CharCon), (blockIndex, charIndex) => {
+    abc.annotate(List("name" -> 'n'), Range(SegmentCon("aaa"), CharCon), (blockIndex, charIndex) => {
         Some(U('n'))
     }).write("/home/thomas/out.svg")
 
