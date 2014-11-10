@@ -229,9 +229,13 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
 
   final def getElements(annotationTypeName: String)(blockIndex: Int, charIndex: Int): IntMap[Element] = {
     val segment = getSegment(annotationTypeName)(blockIndex, charIndex)
-    val blockBIndex = segment.firstKey
-    val blockLIndex = segment.lastKey
-    getElementsInRange(blockBIndex, blockLIndex)
+    if (segment.isEmpty) {
+      IntMap[Element]()
+    } else {
+      val blockBIndex = segment.firstKey
+      val blockLIndex = segment.lastKey
+      getElementsInRange(blockBIndex, blockLIndex)
+    }
   }
 
   final def getTextMapInRange(blockIndex1: Int, charIndex1: Int, blockIndex2: Int, charIndex2: Int): IntMap[String] = {
@@ -248,17 +252,21 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
   final def getTextMap(annotationTypeName: String)(blockIndex: Int, charIndex: Int): IntMap[String] = {
     val segment = getSegment(annotationTypeName)(blockIndex, charIndex)
 
-    val blockBIndex = segment.firstKey
-    val charBIndex = segment(blockBIndex).firstKey
-    val blockLIndex = segment.lastKey
-    val charLIndex = segment(segment.lastKey).lastKey
+    if (segment.isEmpty) {
+      IntMap[String]()
+    } else {
+      val blockBIndex = segment.firstKey
+      val charBIndex = segment(blockBIndex).firstKey
+      val blockLIndex = segment.lastKey
+      val charLIndex = segment(segment.lastKey).lastKey
 
-    getTextMapInRange(
-        blockBIndex, 
-        charBIndex,
-        blockLIndex,
-        charLIndex
-    )
+      getTextMapInRange(
+          blockBIndex, 
+          charBIndex,
+          blockLIndex,
+          charLIndex
+      )
+    }
   }
 
   private def filterStartIndexes(char: Char, blockIndex: Int, charIndexSet: Set[Int], rule: (Int, Int) => Option[Label]) = {
