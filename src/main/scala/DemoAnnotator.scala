@@ -21,40 +21,55 @@ object DemoAnnotator {
     val builder = new SAXBuilder()
     val dom = builder.build(new File(filePath)) 
     val annotator = LineAnnotator.addLineAnnotation(new Annotator(dom))
+    //annotator.write("/home/thomas/out.svg")
 
-    val table = (annotator.getBIndexList(LineAnnotator.lineAnnoType).map {
+    /*
+    val table = (annotator.getBIndexList(LineAnnotator.segmentType).map {
       case (blockIndex, charIndex) =>
 
-        val textMap = annotator.getTextMap(LineAnnotator.lineAnnoType)(blockIndex, charIndex)
+        val textMap = annotator.getTextMap(LineAnnotator.segmentType)(blockIndex, charIndex)
 
-        val lineText = textMap.values.mkString(" ")
+        val lineText = textMap.values.mkString("")
+
 
 
         def getLabel(): Option[Label] = {
           readLine(s"line: ${lineText}: ") match {
-            case "b" => Some(B('d'))
+            case "b" => Some(B)
             case "i" => Some(I)
             case "o" => Some(O)
             case "l" => Some(L)
-            case "u" => Some(U('d'))
+            case "u" => Some(U)
             case "n" => None
             case _ => {
               println("Please enter either b, i, o, l, u, or n")
               getLabel()
             }
           }
-          Some(O)
         }
 
         (blockIndex -> charIndex) -> getLabel()
 
     }).toMap
+    */
 
-    val refAnnoType = List(AnnoType("demo", 'd'))
 
-    annotator.annotateAnnoType(LineAnnotator.lineAnnoType, refAnnoType, (blockIndex, charIndex) => {
-      table(blockIndex -> charIndex)
-    }).write("/Users/klimzaporojets/out.svg")
+
+    val abc = annotator.annotate(List("aaa" -> 'a', "bbb" -> 'b'), Single(SegmentCon("line")), (blockIndex, charIndex) => {
+        if (blockIndex % 3 == 0) {
+          Some(B('a'))
+        } else if (blockIndex % 3 == 1) {
+          Some(B('b'))
+        } else {
+          None
+        }
+    }).write("/home/thomas/out.svg")
+    val atype = AnnotationType("aaa", 'a', Single(SegmentCon("line")))
+    val btype = AnnotationType("bbb", 'b', Single(SegmentCon("line")))
+
+    abc.annotate(List("name" -> 'n'), Range(SegmentCon("aaa"), CharCon), (blockIndex, charIndex) => {
+        Some(U('n'))
+    }).write("/home/thomas/out.svg")
 
   }
 
