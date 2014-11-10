@@ -93,7 +93,7 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
     val constr =  ", constraint: " + {
       val constraintRange = a.annotationTypeSeq(0).constraintRange
       a.annotationTypeSeq.foreach(annoType => {
-        assert(annoType.constraintRange == constraintRange)
+        assert(annoType.constraintRange == constraintRange, "annotationTypeSeq has inconsistent constraints")
       })
       def loop(cr: ConstraintRange): String = {
         cr match {
@@ -148,10 +148,10 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
   }
 
 
-  private def addAnnotation(anno: AnnotationSpan, bb: AnnotationBlock) = { 
-    //require(anno.labelMap.lastKey < bb.nextIndex)
-    anno.annotationTypeSeq.foldLeft(bb)((_bb, annotationType) => {
-      _bb.copy(annotationMap = _bb.annotationMap + (annotationType -> anno))
+  private def addAnnotation(annotationSpan: AnnotationSpan, annotationBlock: AnnotationBlock) = { 
+    require(annotationSpan.labelMap.lastKey < annotationBlock.nextIndex, "annotationSpan is too long for annotationBlock")
+    annotationSpan.annotationTypeSeq.foldLeft(annotationBlock)((b, annotationType) => {
+      b.copy(annotationMap = b.annotationMap + (annotationType -> annotationSpan))
     })
 
   }
@@ -169,7 +169,6 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
         })
     }
   }
-
 
   final def getSegment(annotationTypeName: String)(blockIndex: Int, charIndex: Int): Segment = {
 
@@ -288,7 +287,7 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
         def loop(bIndexTableAcc: IntMap[Set[Int]], constraint: Constraint): IntMap[Set[Int]] = {
           (constraint, endCon) match {
             case (CharCon, SegmentCon(_)) => 
-              //invalid: charcon should not exist before end of range
+              require(false, "constraintRange's end does not follow from its start")
               IntMap[Set[Int]]()
             case (x, y) if (x == y) => 
               bIndexTableAcc
