@@ -23,35 +23,35 @@ object DemoAnnotator {
     val annotator = LineAnnotator.addLineAnnotation(new Annotator(dom))
     //annotator.write("/home/thomas/out.svg")
 
-    /*
-    val table = (annotator.getBIndexList(LineAnnotator.segmentType).map {
-      case (blockIndex, charIndex) =>
 
-        val textMap = annotator.getTextMap(LineAnnotator.segmentType)(blockIndex, charIndex)
+//    val table = (annotator.getBIndexList(LineAnnotator.segmentType).map {
+//      case (blockIndex, charIndex) =>
+//
+//        val textMap = annotator.getTextMap(LineAnnotator.segmentType)(blockIndex, charIndex)
+//
+//        val lineText = textMap.values.mkString("")
+//
+//
+//
+//        def getLabel(): Option[Label] = {
+//          readLine(s"line: ${lineText}: ") match {
+//            case "b" => Some(B)
+//            case "i" => Some(I)
+//            case "o" => Some(O)
+//            case "l" => Some(L)
+//            case "u" => Some(U)
+//            case "n" => None
+//            case _ => {
+//              println("Please enter either b, i, o, l, u, or n")
+//              getLabel()
+//            }
+//          }
+//        }
+//
+//        (blockIndex -> charIndex) -> getLabel()
+//
+//    }).toMap
 
-        val lineText = textMap.values.mkString("")
-
-
-
-        def getLabel(): Option[Label] = {
-          readLine(s"line: ${lineText}: ") match {
-            case "b" => Some(B)
-            case "i" => Some(I)
-            case "o" => Some(O)
-            case "l" => Some(L)
-            case "u" => Some(U)
-            case "n" => None
-            case _ => {
-              println("Please enter either b, i, o, l, u, or n")
-              getLabel()
-            }
-          }
-        }
-
-        (blockIndex -> charIndex) -> getLabel()
-
-    }).toMap
-    */
 
 
 
