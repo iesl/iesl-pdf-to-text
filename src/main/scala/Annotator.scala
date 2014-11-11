@@ -16,6 +16,7 @@ import scala.collection.JavaConversions.iterableAsScalaIterable
 import scala.collection.immutable.IntMap
 import scala.collection.immutable.Queue
 import scala.collection.immutable.HashMap
+import scala.collection.immutable.SortedSet
 
 import org.jdom2.output.Format
 import org.jdom2.output.XMLOutputter
@@ -52,7 +53,7 @@ object Annotator {
     annotationTypeSeq: Seq[AnnotationType]
   )
 
-  case class AnnotationInfo(annotationType: AnnotationType, bIndexPairSet: Set[(Int, Int)])
+  case class AnnotationInfo(annotationType: AnnotationType, bIndexPairSortedSet: SortedSet[(Int, Int)])
 
   case class AnnotationBlock(startIndex: Int, nextIndex: Int, annotationMap: Map[AnnotationType, AnnotationSpan])
 
@@ -156,12 +157,12 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
 
   }
 
-  private val charBIndexPairSet = frozenElements.zipWithIndex.flatMap { 
+  private val charBIndexPairSet = SortedSet(frozenElements.zipWithIndex.flatMap { 
     case (e, blockIndex) => 
       (0 until e.getText().size).map(charIndex => {
         blockIndex -> charIndex
       })
-  } toSet
+  }: _*)
 
 
   final def getSegment(annotationTypeName: String)(blockIndex: Int, charIndex: Int): Segment = {
@@ -263,23 +264,23 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
     }
   }
 
-  final def getAnnotatableIndexPairSet(constraintRange: ConstraintRange): Set[(Int, Int)] = {
+  final def getAnnotatableIndexPairSet(constraintRange: ConstraintRange): SortedSet[(Int, Int)] = {
     constraintRange match {
       case Single(CharCon) =>
         charBIndexPairSet
       case Single(SegmentCon(annotationTypeName)) =>
-        annotationInfoMap(annotationTypeName).bIndexPairSet
+        annotationInfoMap(annotationTypeName).bIndexPairSortedSet
       case Range(SegmentCon(annotationTypeName), endCon) =>
-        def loop(bIndexPairSetAcc: Set[(Int, Int)], constraint: Constraint): Set[(Int, Int)] = {
+        def loop(bIndexPairSortedSetAcc: SortedSet[(Int, Int)], constraint: Constraint): SortedSet[(Int, Int)] = {
           (constraint, endCon) match {
             case (CharCon, SegmentCon(_)) => 
               require(false, "constraintRange's end does not follow from its start")
-              Set[(Int, Int)]()
+              SortedSet[(Int, Int)]()
             case (x, y) if (x == y) => 
-              bIndexPairSetAcc
+              bIndexPairSortedSetAcc
             case (SegmentCon(annotationTypeName), _) =>
 
-              val _bIndexPairSetAcc = bIndexPairSetAcc.flatMap(pair => { 
+              val _bIndexPairSortedSetAcc = bIndexPairSortedSetAcc.flatMap(pair => { 
                 val (blockIndex, charIndex) = pair
                 val segment = getSegment(annotationTypeName)(blockIndex, charIndex)
                 segment.keys.flatMap(bI => {
@@ -295,13 +296,13 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
                 case Range(_, c) => c
               }
 
-              loop(_bIndexPairSetAcc, _constraint)
+              loop(_bIndexPairSortedSetAcc, _constraint)
           }
         }
-        loop(annotationInfoMap(annotationTypeName).bIndexPairSet, SegmentCon(annotationTypeName))
+        loop(annotationInfoMap(annotationTypeName).bIndexPairSortedSet, SegmentCon(annotationTypeName))
       case _ =>
         require(false, "constraintRange is illformed")
-        Set[(Int, Int)]()
+        SortedSet[(Int, Int)]()
     }
   }
 
