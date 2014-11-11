@@ -344,19 +344,6 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
     val _annotationInfoMap =  {
       val annotationInfoList = annotationTypeSeq.map {
         case _annotationType => 
-          //val char = _annotationType.c
-          //val bIndexPairSet = labelTable.toSet.flatMap {
-          //  case (blockIndex, labelMap) =>
-          //    labelMap.toSet.flatMap {
-          //      case (charIndex, label) =>
-          //        if (label == B(char) || label == U(char)) {
-          //          Some(blockIndex -> charIndex)
-          //        } else {
-          //          None
-          //        }
-          //    }
-          //}
-
           val char = _annotationType.c
           val bIndexPairSet = annotatableIndexPairSet.filter {
             case (blockIndex, charIndex) => 
@@ -368,18 +355,6 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
                 })
               })
           }
-
-          //val bIndexPairSet = annotatableIndexPairSet.flatMap {
-          //  case (blockIndex, charIndex) => 
-          //    val char = _annotationType.c
-          //    
-          //    //rule(blockIndex, charIndex) match {
-          //    //  case Some(label) if label == B(char) || label == U(char) =>
-          //    //    Some(blockIndex -> charIndex)
-          //    //  case _ => None
-          //    //}
-          //}
-
           _annotationType.name -> AnnotationInfo(_annotationType, bIndexPairSet)
           
       }
