@@ -868,6 +868,9 @@ var SVGGraphics = (function SVGGraphicsClosure() {
       console.log('(x,y): ('+current.x+','+current.y+'), xcoords.len: '+current.xcoords.length);
       console.log('text:'+current.tspan.textContent);
 
+      if (current.tspan.textContent == '') {
+        current.tspan.textContent = '';
+      }
 
       current.tspan.setAttributeNS(null, 'x',
                                    current.xcoords.map(pf).join(' '));

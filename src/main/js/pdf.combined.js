@@ -22,8 +22,8 @@ if (typeof PDFJS === 'undefined') {
   (typeof window !== 'undefined' ? window : this).PDFJS = {};
 }
 
-PDFJS.version = '1.0.909';
-PDFJS.build = '83eff10';
+PDFJS.version = '1.0.954';
+PDFJS.build = '8e6b97e';
 
 (function pdfjsWrapper() {
   // Use strict in our context only - users might not want it
@@ -3067,6 +3067,8 @@ var Metadata = PDFJS.Metadata = (function MetadataClosure() {
 
 // Minimal font size that would be used during canvas fillText operations.
 var MIN_FONT_SIZE = 16;
+// Maximum font size that would be used during canvas fillText operations.
+var MAX_FONT_SIZE = 100;
 var MAX_GROUP_SIZE = 4096;
 
 var COMPILE_TYPE3_GLYPHS = true;
@@ -4267,9 +4269,9 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
       // Keeping the font at minimal size and using the fontSizeScale to change
       // the current transformation matrix before the fillText/strokeText.
       // See https://bugzilla.mozilla.org/show_bug.cgi?id=726227
-      var browserFontSize = size >= MIN_FONT_SIZE ? size : MIN_FONT_SIZE;
-      this.current.fontSizeScale = browserFontSize !== MIN_FONT_SIZE ? 1.0 :
-                                   size / MIN_FONT_SIZE;
+      var browserFontSize = size < MIN_FONT_SIZE ? MIN_FONT_SIZE :
+                            size > MAX_FONT_SIZE ? MAX_FONT_SIZE : size;
+      this.current.fontSizeScale = size / browserFontSize;
 
       var rule = italic + ' ' + bold + ' ' + browserFontSize + 'px ' + typeface;
       this.ctx.font = rule;
@@ -4504,9 +4506,11 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
       var textHScale = current.textHScale * fontDirection;
       var fontMatrix = current.fontMatrix || FONT_IDENTITY_MATRIX;
       var glyphsLength = glyphs.length;
+      var isTextInvisible =
+        current.textRenderingMode === TextRenderingMode.INVISIBLE;
       var i, glyph, width;
 
-      if (fontSize === 0) {
+      if (isTextInvisible || fontSize === 0) {
         return;
       }
 
@@ -7431,6 +7435,9 @@ var SVGGraphics = (function SVGGraphicsClosure() {
       console.log('(x,y): ('+current.x+','+current.y+'), xcoords.len: '+current.xcoords.length);
       console.log('text:'+current.tspan.textContent);
 
+      if (current.tspan.textContent == '') {
+        current.tspan.textContent = '';
+      }
 
       current.tspan.setAttributeNS(null, 'x',
                                    current.xcoords.map(pf).join(' '));
@@ -11491,7 +11498,7 @@ var WidgetAnnotation = (function WidgetAnnotationClosure() {
       var name = namedItem.get('T');
       if (name) {
         fieldName.unshift(stringToPDFString(name));
-      } else {
+      } else if (parent && ref) {
         // The field name is absent, that means more than one field
         // with the same name may exist. Replacing the empty name
         // with the '`' plus index in the parent's 'Kids' array.
@@ -12092,7 +12099,7 @@ var PDFFunction = (function PDFFunctionClosure() {
 
         var cachedValue = cache[key];
         if (cachedValue !== undefined) {
-          cachedValue.set(dest, destOffset);
+          dest.set(cachedValue, destOffset);
           return;
         }
 
@@ -12116,7 +12123,7 @@ var PDFFunction = (function PDFFunctionClosure() {
           cache_available--;
           cache[key] = output;
         }
-        output.set(dest, destOffset);
+        dest.set(output, destOffset);
       };
     }
   };
@@ -40500,9 +40507,8 @@ var JpegImage = (function jpegImage() {
 
     function decodeHuffman(tree) {
       var node = tree;
-      var bit;
-      while ((bit = readBit()) !== null) {
-        node = node[bit];
+      while (true) {
+        node = node[readBit()];
         if (typeof node === 'number') {
           return node;
         }
@@ -40510,17 +40516,12 @@ var JpegImage = (function jpegImage() {
           throw 'invalid huffman sequence';
         }
       }
-      return null;
     }
 
     function receive(length) {
       var n = 0;
       while (length > 0) {
-        var bit = readBit();
-        if (bit === null) {
-          return;
-        }
-        n = (n << 1) | bit;
+        n = (n << 1) | readBit();
         length--;
       }
       return n;
@@ -40879,7 +40880,7 @@ var JpegImage = (function jpegImage() {
 
       // stage 3
       // Shift v0 by 128.5 << 5 here, so we don't need to shift p0...p7 when
-      // converting to UInt8 range later.  
+      // converting to UInt8 range later.
       v0 = ((v0 + v1 + 1) >> 1) + 4112;
       v1 = v0 - v1;
       t  = (v2 * dctSin6 + v3 * dctCos6 + 2048) >> 12;
@@ -41236,8 +41237,7 @@ var JpegImage = (function jpegImage() {
         }
       }
 
-      // decodeTransform will contains pairs of multiplier (-256..256) and
-      // additive
+      // decodeTransform contains pairs of multiplier (-256..256) and additive
       var transform = this.decodeTransform;
       if (transform) {
         for (i = 0; i < dataLength;) {
@@ -41274,7 +41274,7 @@ var JpegImage = (function jpegImage() {
     },
 
     _convertYcckToRgb: function convertYcckToRgb(data) {
-      var Y, Cb, Cr, k, CbCb, CbCr, CbY, Cbk, CrCr, Crk, CrY, YY, Yk, kk;
+      var Y, Cb, Cr, k;
       var offset = 0;
       for (var i = 0, length = data.length; i < length; i += 4) {
         Y  = data[i];
@@ -41282,43 +41282,35 @@ var JpegImage = (function jpegImage() {
         Cr = data[i + 2];
         k = data[i + 3];
 
-        CbCb = Cb * Cb;
-        CbCr = Cb * Cr;
-        CbY = Cb * Y;
-        Cbk = Cb * k;
-        CrCr = Cr * Cr;
-        Crk = Cr * k;
-        CrY = Cr * Y;
-        YY = Y * Y;
-        Yk = Y * k;
-        kk = k * k;
-
-        var r = - 122.67195406894 -
-          6.60635669420364e-5 * CbCb + 0.000437130475926232 * CbCr -
-          5.4080610064599e-5* CbY + 0.00048449797120281* Cbk -
-          0.154362151871126 * Cb - 0.000957964378445773 * CrCr +
-          0.000817076911346625 * CrY - 0.00477271405408747 * Crk +
-          1.53380253221734 * Cr + 0.000961250184130688 * YY -
-          0.00266257332283933 * Yk + 0.48357088451265 * Y -
-          0.000336197177618394 * kk + 0.484791561490776 * k;
+        var r = -122.67195406894 +
+          Cb * (-6.60635669420364e-5 * Cb + 0.000437130475926232 * Cr -
+                5.4080610064599e-5 * Y + 0.00048449797120281 * k -
+                0.154362151871126) +
+          Cr * (-0.000957964378445773 * Cr + 0.000817076911346625 * Y -
+                0.00477271405408747 * k + 1.53380253221734) +
+          Y * (0.000961250184130688 * Y - 0.00266257332283933 * k +
+               0.48357088451265) +
+          k * (-0.000336197177618394 * k + 0.484791561490776);
 
         var g = 107.268039397724 +
-          2.19927104525741e-5 * CbCb - 0.000640992018297945 * CbCr +
-          0.000659397001245577* CbY + 0.000426105652938837* Cbk -
-          0.176491792462875 * Cb - 0.000778269941513683 * CrCr +
-          0.00130872261408275 * CrY + 0.000770482631801132 * Crk -
-          0.151051492775562 * Cr + 0.00126935368114843 * YY -
-          0.00265090189010898 * Yk + 0.25802910206845 * Y -
-          0.000318913117588328 * kk - 0.213742400323665 * k;
+          Cb * (2.19927104525741e-5 * Cb - 0.000640992018297945 * Cr +
+                0.000659397001245577 * Y + 0.000426105652938837 * k -
+                0.176491792462875) +
+          Cr * (-0.000778269941513683 * Cr + 0.00130872261408275 * Y +
+                0.000770482631801132 * k - 0.151051492775562) +
+          Y * (0.00126935368114843 * Y - 0.00265090189010898 * k +
+               0.25802910206845) +
+          k * (-0.000318913117588328 * k - 0.213742400323665);
 
-        var b = - 20.810012546947 -
-          0.000570115196973677 * CbCb - 2.63409051004589e-5 * CbCr +
-          0.0020741088115012* CbY - 0.00288260236853442* Cbk +
-          0.814272968359295 * Cb - 1.53496057440975e-5 * CrCr -
-          0.000132689043961446 * CrY + 0.000560833691242812 * Crk -
-          0.195152027534049 * Cr + 0.00174418132927582 * YY -
-          0.00255243321439347 * Yk + 0.116935020465145 * Y -
-          0.000343531996510555 * kk + 0.24165260232407 * k;
+        var b = -20.810012546947 +
+          Cb * (-0.000570115196973677 * Cb - 2.63409051004589e-5 * Cr +
+                0.0020741088115012 * Y - 0.00288260236853442 * k +
+                0.814272968359295) +
+          Cr * (-1.53496057440975e-5 * Cr - 0.000132689043961446 * Y +
+                0.000560833691242812 * k - 0.195152027534049) +
+          Y * (0.00174418132927582 * Y - 0.00255243321439347 * k +
+               0.116935020465145) +
+          k * (-0.000343531996510555 * k + 0.24165260232407);
 
         data[offset++] = clamp0to255(r);
         data[offset++] = clamp0to255(g);
@@ -41459,17 +41451,51 @@ var JpxImage = (function JpxImageClosure() {
         var dataLength = lbox - headerSize;
         var jumpDataLength = true;
         switch (tbox) {
-          case 0x6A501A1A: // 'jP\032\032'
-            // TODO
-            break;
           case 0x6A703268: // 'jp2h'
             jumpDataLength = false; // parsing child boxes
             break;
           case 0x636F6C72: // 'colr'
-            // TODO
+            // Colorspaces are not used, the CS from the PDF is used.
+            var method = data[position];
+            var precedence = data[position + 1];
+            var approximation = data[position + 2];
+            if (method === 1) {
+              // enumerated colorspace
+              var colorspace = readUint32(data, position + 3);
+              switch (colorspace) {
+                case 16: // this indicates a sRGB colorspace
+                case 17: // this indicates a grayscale colorspace
+                case 18: // this indicates a YUV colorspace
+                  break;
+                default:
+                  warn('Unknown colorspace ' + colorspace);
+                  break;
+              }
+            } else if (method === 2) {
+              info('ICC profile not supported');
+            }
             break;
           case 0x6A703263: // 'jp2c'
             this.parseCodestream(data, position, position + dataLength);
+            break;
+          case 0x6A502020: // 'jP\024\024'
+            if (0x0d0a870a !== readUint32(data, position)) {
+              warn('Invalid JP2 signature');
+            }
+            break;
+          // The following header types are valid but currently not used:
+          case 0x6A501A1A: // 'jP\032\032'
+          case 0x66747970: // 'ftyp'
+          case 0x72726571: // 'rreq'
+          case 0x72657320: // 'res '
+          case 0x69686472: // 'ihdr'
+            break;
+          default:
+            var headerType = String.fromCharCode((tbox >> 24) & 0xFF,
+                                                 (tbox >> 16) & 0xFF,
+                                                 (tbox >> 8) & 0xFF,
+                                                 tbox & 0xFF);
+            warn('Unsupported header type ' + tbox + ' (' + headerType + ')');
             break;
         }
         if (jumpDataLength) {
@@ -41902,6 +41928,11 @@ var JpxImage = (function JpxImageClosure() {
         codeblock.precinctNumber = precinctNumber;
         codeblock.subbandType = subband.type;
         codeblock.Lblock = 3;
+
+        if (codeblock.tbx1_ <= codeblock.tbx0_ ||
+            codeblock.tby1_ <= codeblock.tby0_) {
+          continue;
+        }
         codeblocks.push(codeblock);
         // building precinct for the sub-band
         var precinct = precincts[precinctNumber];
@@ -42184,11 +42215,11 @@ var JpxImage = (function JpxImageClosure() {
     var tile = context.tiles[tileIndex];
     var packetsIterator = tile.packetsIterator;
     while (position < dataLength) {
-      var packet = packetsIterator.nextPacket();
+      alignToByte();
       if (!readBits(1)) {
-        alignToByte();
         continue;
       }
+      var packet = packetsIterator.nextPacket();
       var layerNumber = packet.layerNumber;
       var queue = [], codeblock;
       for (var i = 0, ii = packet.codeblocks.length; i < ii; i++) {
@@ -42199,13 +42230,13 @@ var JpxImage = (function JpxImageClosure() {
         var codeblockIncluded = false;
         var firstTimeInclusion = false;
         var valueReady;
-        if ('included' in codeblock) {
+        if (codeblock['included'] !== undefined) {
           codeblockIncluded = !!readBits(1);
         } else {
           // reading inclusion tree
           precinct = codeblock.precinct;
           var inclusionTree, zeroBitPlanesTree;
-          if ('inclusionTree' in precinct) {
+          if (precinct['inclusionTree'] !== undefined) {
             inclusionTree = precinct.inclusionTree;
           } else {
             // building inclusion and zero bit-planes trees
@@ -42270,7 +42301,7 @@ var JpxImage = (function JpxImageClosure() {
       while (queue.length > 0) {
         var packetItem = queue.shift();
         codeblock = packetItem.codeblock;
-        if (!('data' in codeblock)) {
+        if (codeblock['data'] === undefined) {
           codeblock.data = [];
         }
         codeblock.data.push({
@@ -42300,7 +42331,7 @@ var JpxImage = (function JpxImageClosure() {
       if (blockWidth === 0 || blockHeight === 0) {
         continue;
       }
-      if (!('data' in codeblock)) {
+      if (codeblock['data'] === undefined) {
         continue;
       }
 
@@ -42555,10 +42586,10 @@ var JpxImage = (function JpxImageClosure() {
     var tile = context.tiles[tileIndex];
     for (var c = 0; c < componentsCount; c++) {
       var component = tile.components[c];
-      var qcdOrQcc = (c in context.currentTile.QCC ?
+      var qcdOrQcc = (context.currentTile.QCC[c] !== undefined ?
         context.currentTile.QCC[c] : context.currentTile.QCD);
       component.quantizationParameters = qcdOrQcc;
-      var codOrCoc = (c in context.currentTile.COC ?
+      var codOrCoc = (context.currentTile.COC[c] !== undefined  ?
         context.currentTile.COC[c] : context.currentTile.COD);
       component.codingStyleParameters = codOrCoc;
     }
@@ -42587,7 +42618,7 @@ var JpxImage = (function JpxImageClosure() {
         while (currentLevel < this.levels.length) {
           level = this.levels[currentLevel];
           var index = i + j * level.width;
-          if (index in level.items) {
+          if (level.items[index] !== undefined) {
             value = level.items[index];
             break;
           }
