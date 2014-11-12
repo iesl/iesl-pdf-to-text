@@ -7435,7 +7435,7 @@ var SVGGraphics = (function SVGGraphicsClosure() {
       console.log('(x,y): ('+current.x+','+current.y+'), xcoords.len: '+current.xcoords.length);
       console.log('text:'+current.tspan.textContent);
 
-      if (current.tspan.textContent == '') {
+      if (current.tspan.textContent.match(/[\cA-\cZ]/)) {
         current.tspan.textContent = '';
       }
 
