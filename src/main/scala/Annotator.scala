@@ -57,7 +57,11 @@ object Annotator {
 
   case class AnnotationBlock(startIndex: Int, nextIndex: Int, annotationMap: Map[AnnotationType, AnnotationSpan])
 
-  private def getElementsOf(dom: Document) = dom.getRootElement().getDescendants(new ElementFilter("tspan")).toIterable
+  private def getElementsOf(dom: Document) = {
+    dom.getRootElement().getDescendants(new ElementFilter("tspan")).toIterable.filter(e => {
+      e.getText().size > 0
+    })
+  }
 
 }
 
