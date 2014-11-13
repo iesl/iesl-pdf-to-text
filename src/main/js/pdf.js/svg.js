@@ -1118,7 +1118,7 @@ var SVGGraphics = (function SVGGraphicsClosure() {
 
     closePath: function SVGGraphics_closePath() {
       var current = this.current;
-      var d = current.path.getAttributeNS(null, 'd');
+      var d = current.path.attributes.d;
       d += 'Z';
       current.path.setAttributeNS(null, 'd', d);
     },
