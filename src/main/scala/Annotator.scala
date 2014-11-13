@@ -222,7 +222,7 @@ class Annotator(private val dom: Document, val annotationBlockSeq: IndexedSeq[An
 
   final def getElementsInRange(blockIndex1: Int, blockIndex2: Int): IntMap[Element] = {
     IntMap((blockIndex1 to blockIndex2).map(blockIndex =>{
-      blockIndex -> frozenElements(blockIndex).clone()
+      blockIndex -> getElements().toIndexedSeq(blockIndex)
     }): _*)
   }
 

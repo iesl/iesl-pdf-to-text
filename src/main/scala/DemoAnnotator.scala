@@ -56,8 +56,16 @@ object DemoAnnotator {
     lineBIndexPairSet.map {
       case (blockIndex, charIndex) =>
         val textMap = annotator.getTextMap("line")(blockIndex, charIndex)
-        println("textMap: " + textMap)
-        textMap
+
+
+        val es = annotator.getElements("line")(blockIndex, charIndex)
+        es.map {
+          case (i, e) =>
+            val parent = e.getParent()
+            println(parent)
+        }
+
+
     }
 
 
