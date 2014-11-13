@@ -52,6 +52,13 @@ object DemoAnnotator {
 //
 //    }).toMap
 
+    val lineBIndexPairSet = annotator.getAnnotatableIndexPairSet(Single(SegmentCon("line")))
+    lineBIndexPairSet.map {
+      case (blockIndex, charIndex) =>
+        val textMap = annotator.getTextMap("line")(blockIndex, charIndex)
+        println("textMap: " + textMap)
+        textMap
+    }
 
 
 

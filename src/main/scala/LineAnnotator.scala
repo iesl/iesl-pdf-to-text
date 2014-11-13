@@ -23,7 +23,8 @@ object LineAnnotator {
     val lineList = annotator.getElements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
       queueAcc.lastOption match {
         case Some(currentLine) if (
-            e.getAttribute("y").getValue() 
+            e.getParent() == currentLine.last.getParent()
+            && e.getAttribute("y").getValue() 
             == currentLine.last.getAttribute("y").getValue()
         ) => 
           queueAcc.init.enqueue {
