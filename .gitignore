@@ -46,4 +46,7 @@ lib_managed
 #pdf svg extractor
 svgdump
 
+#svg output dirs
+*.d
+
 *~
