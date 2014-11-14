@@ -2,7 +2,7 @@
 package annotator
 
 import java.io.File
-import org.jdom2.Content
+import org.jdom2.{Element, Content, Document}
 import org.jdom2.util.IteratorIterable
 import scala.collection.immutable.Queue
 import scala.collection.JavaConversions.iterableAsScalaIterable 
@@ -10,8 +10,6 @@ import scala.collection.JavaConversions.iterableAsScalaIterable
 import scala.collection.immutable.IntMap
 import org.jdom2.input.SAXBuilder
 import org.jdom2.filter.ElementFilter
-import org.jdom2.Element
-import org.jdom2.Document
 import org.jdom2.util.IteratorIterable
 
 object XyzAnnotator {
@@ -26,18 +24,18 @@ object XyzAnnotator {
 
     //some examples
 
-//    val refAnno = annotator.annotate(List("reference" -> 'r'), Single(SegmentCon("line")), (blockIndex, charIndex) => {
-//      val textMap = annotator.getTextMap(/*LineAnnotator.segmentType*/ "line")(blockIndex, charIndex)
-//      println("the following textMap1: " + textMap)
-//        if (blockIndex % 3 == 0) {
-//          Some(B('r'))
-//        } else if (blockIndex % 3 == 1) {
-//          Some(I)
-//        } else {
-//          Some(L)
-//        }
-//      None
-//    }).write("/Users/klimzaporojets/out.svg")
+    val refAnno = annotator.annotate(List("reference" -> 'r'), Single(SegmentCon("line")), (blockIndex, charIndex) => {
+      val textMap = annotator.getTextMap(/*LineAnnotator.segmentType*/ "line")(blockIndex, charIndex)
+      println("the following textMap1: " + textMap)
+        if (blockIndex % 3 == 0) {
+          Some(B('r'))
+        } else if (blockIndex % 3 == 1) {
+          Some(I)
+        } else {
+          Some(L)
+        }
+      None
+    }).write("/Users/klimzaporojets/out.svg")
 
 //
 //    refAnno.annotate(List("group" -> 'g'), Range(SegmentCon("reference"), CharCon), (blockIndex, charIndex) => {
@@ -65,16 +63,108 @@ object XyzAnnotator {
 
    /* alternative */
     val lineBIndexPairSet = annotator.getAnnotatableIndexPairSet(Single(SegmentCon("line")))
+
+
     //see what other annotations exist at each line
-    val res:Set[IntMap[String]] = lineBIndexPairSet.map {
+    val res = lineBIndexPairSet.toList.map {
       case (blockIndex, charIndex) =>
         val textMap = annotator.getTextMap(/*LineAnnotator.segmentType*/ "line")(blockIndex, charIndex)
-        println("the following textMap2: " + textMap)
-//        println("the following textMap on blockIndex 1: " + annotator.getTextMap("line")(3, 0) )
-        textMap
+//        println("the following textMap: " + textMap)
+        textMap.values.mkString("")
+
     }
+
+    print(res);
+
+
+    val elements = lineBIndexPairSet.toList.map {
+      case (blockIndex, charIndex) =>
+        val elements = annotator.getElements("line")(blockIndex, charIndex)
+        val parent = elements(elements.firstKey).getParentElement
+        println(parent)
+    }
+
+//    elements(0)
+
+
+    val groupedByLineContent:Map[Int, IntMap[Element]] = lineBIndexPairSet.toList.zipWithIndex.map {
+      case (blockCharIndex, charIndex) =>
+        val elements = annotator.getElements("line")(blockCharIndex._1, blockCharIndex._2)
+        println(blockCharIndex._1)
+        println(blockCharIndex._2)
+        Map(charIndex -> elements)
+    }.flatten.toMap
+
+    println(groupedByLineContent)
+
+//    val groupedByLineContent:Map[Int, Iterable[Element]] = lineBIndexPairSet.toList.zipWithIndex.map {
+//      case (blockCharIndex, charIndex) =>
+//        val elements = annotator.getElements("line")(blockCharIndex._1, blockCharIndex._2)
+//        Map(charIndex -> elements.values)
+//    }.flatten.toMap
+
+//    println(groupedByLineContent)
+    val lines:Set[Int] = groupedByLineContent.keySet
+
+    val keysIterator:Iterator[Int] = groupedByLineContent.keysIterator
+
+    val sortedLines:List[Int] = keysIterator.toList.sorted
+
+    //we are here
+    val lastLine:Int  = lines.max
+    val firstLine:Int = lines.min
+    println("")
+
+    for(
+      currentLine <- sortedLines
+    ) {
+      //      println("current line: " + currentLine)
+      val line: IntMap[Element] = groupedByLineContent.get(currentLine).get
+
+      println(line.map{_._2.getContent.map{_.getValue}}.flatten.mkString(""))
+    }
+//
+//    println("")
+
+    val fonts = lineBIndexPairSet.map {
+      case (blockIndex, charIndex) =>
+        val elements = annotator.getElements("line")(blockIndex, charIndex)
+        elements.map{x=>
+          x._2.getAttribute("font-family").getValue
+        }
+    }.flatten
+
+
+    val sizes = lineBIndexPairSet.toList.map {
+      case (blockIndex, charIndex) =>
+        val elements = annotator.getElements("line")(blockIndex, charIndex)
+        elements.map{x=>
+          val currVal = x._2.getAttribute("font-size").getValue
+
+          currVal.substring(0,currVal.indexOf("px"))
+        }
+    }.flatten.groupBy(_.toString).mapValues(_.count(x=>true))
+
+    val sortsizes = sizes.toList.sortBy(- _._2)
+
+    println("The most common size is: " + sortsizes(0)._1)
+
+
+    val sizes2 = lineBIndexPairSet.map {
+      case (blockIndex, charIndex) =>
+        val elements = annotator.getElements("line")(blockIndex, charIndex)
+        elements.map{x=>
+          val currVal = x._2.getAttribute("font-size").getValue
+          currVal.substring(0,currVal.indexOf("px"))
+        }
+    }.flatten //.groupBy(_.toString).mapValues(_.count(x=>true))
+
+    val sortsizes2 = sizes2.toList.sortBy(- _.toInt)
+
+    println("The largest font size is: " + sortsizes2(0))
+
 //test1-20.svg
-    val res2:List[IntMap[String]] = res.toList.sortBy(x=> x.firstKey)
+//    val res2:List[IntMap[String]] = res.toList.sortBy(x=> x.firstKey)
 //    println(res)
 
 
