@@ -9,9 +9,10 @@ define(function(require) {
     // Dumps svg outputs to a folder called svgdump
     function writeToFile(svgdump, pageNum, pdfPath) {
         var name = getFileNameFromPath(pdfPath);
-        fs.mkdir('./svgdump/', function(err) {
+        var dirName = name + ".d"
+        fs.mkdir('./' + dirName + '/', function(err) {
             if (!err || err.code === 'EEXIST') {
-                fs.writeFile('./svgdump/' + name + "-" + pageNum + '.svg', svgdump,
+                fs.writeFile('./' + dirName + '/' + name + "-" + pageNum + '.svg', svgdump,
                              function(err) {
                                  if (err) {
                                      console.log('Error: ' + err);
