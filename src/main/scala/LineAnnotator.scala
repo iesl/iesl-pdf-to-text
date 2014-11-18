@@ -18,15 +18,37 @@ object LineAnnotator {
 
   val segmentType = AnnotationType("line", 'l', Single(CharCon))
 
+  def yTransform(e: Element) = {
+    Option(e.getAttribute("transform")) match {
+      case Some(attr) if attr.getValue().startsWith("matrix(") =>
+        val trans = attr.getValue()
+        val firstN = trans.indexOf("(") + 1
+        val lastN = trans.size - trans.indexOf(")")
+        val transformArray = trans
+          .drop(firstN)
+          .dropRight(lastN)
+          .trim().split(" ")
+          .map(_.toDouble)
+        transformArray(3)
+      case _ => 
+        0
+    }
+  }
+
 
   def addLineAnnotation(annotator: Annotator): Annotator =  {
+    def isSameLine(e1: Element, e2: Element) = {
+      val areSiblings = e1.getParent() == e2.getParent()
+      val haveSameY = e1.getAttribute("y").getValue() == e2.getAttribute("y").getValue()
+      val parentYTrans = yTransform(e1.getParentElement())
+      val areCousins = !areSiblings && e1.getParent().getParent() == e2.getParent().getParent()
+
+      (areSiblings && haveSameY) || (areCousins && parentYTrans < 12)
+    }
+
     val lineList = annotator.getElements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {
       queueAcc.lastOption match {
-        case Some(currentLine) if (
-            e.getParent() == currentLine.last.getParent()
-            && e.getAttribute("y").getValue() 
-            == currentLine.last.getAttribute("y").getValue()
-        ) => 
+        case Some(currentLine) if isSameLine(e, currentLine.last) => 
           queueAcc.init.enqueue {
             queueAcc.last.enqueue(e)
           }
