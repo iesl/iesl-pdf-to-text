@@ -37,9 +37,18 @@ object LineAnnotator {
 
 
   def addLineAnnotation(annotator: Annotator): Annotator =  {
+
+    def fontSize(e: Element) = {
+        e.getAttribute("font-size").getValue().dropRight(2).toDouble
+    }
+
+    def y(e: Element) = {
+      e.getAttribute("y").getValue().toDouble 
+    }
+
     def isSameLine(e1: Element, e2: Element) = {
       val areSiblings = e1.getParent() == e2.getParent()
-      val haveSameY = e1.getAttribute("y").getValue() == e2.getAttribute("y").getValue()
+      val haveSameY = Math.abs(y(e1)/fontSize(e1) - y(e2)/fontSize(e2)) < 0.5
       val parentYTrans = yTransform(e1.getParentElement())
       val areCousins = !areSiblings && e1.getParent().getParent() == e2.getParent().getParent()
 

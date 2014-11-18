@@ -57,13 +57,15 @@ object DemoAnnotator {
       case (blockIndex, charIndex) =>
         val textMap = annotator.getTextMap("line")(blockIndex, charIndex)
 
+        println("line: " + textMap.values.mkString(""))
 
-        val es = annotator.getElements("line")(blockIndex, charIndex)
-        es.map {
-          case (i, e) =>
-            val parent = e.getParent()
-            println(parent)
-        }
+
+        //val es = annotator.getElements("line")(blockIndex, charIndex)
+        //es.map {
+        //  case (i, e) =>
+        //    val parent = e.getParent()
+        //    println(parent)
+        //}
 
 
     }
