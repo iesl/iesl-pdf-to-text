@@ -132,28 +132,28 @@ object Annotator {
     }
   }
 
-  def getTransformedCoords(startE: Element, endE: Element): (List[Double], List[Double]) = {
+  def getTransformedCoords(sourceE: Element, ancestorE: Element): (List[Double], List[Double]) = {
 
     def matrixTotal(e: Element): SvgMatrix = {
       require(e != null)
       val m = matrix(e)
-      if (e == endE) {
+      if (e == ancestorE) {
         m
       } else {
         svgMatrixMultiply(matrixTotal(e.getParentElement()), m)
       }
     }
 
-    val m = matrixTotal(startE)
-    val startXs = xs(startE)
-    val startY = y(startE)
+    val m = matrixTotal(sourceE)
+    val sourceXs = xs(sourceE)
+    val sourceY = y(sourceE)
 
-    val _xs = startXs.map(x => {
-      m(0) * x + m(2) * startY + m(4)
+    val _xs = sourceXs.map(x => {
+      m(0) * x + m(2) * sourceY + m(4)
     })
 
-    val _ys = startXs.map(x => {
-      m(1) * x + m(3) * startY + m(5)
+    val _ys = sourceXs.map(x => {
+      m(1) * x + m(3) * sourceY + m(5)
     })
 
     (_xs.toList, _ys.toList)
