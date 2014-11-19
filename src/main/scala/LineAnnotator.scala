@@ -16,43 +16,14 @@ import org.jdom2.util.IteratorIterable
 object LineAnnotator {
   import Annotator._
 
-  val segmentType = AnnotationType("line", 'l', Single(CharCon))
-
-  def yTransform(e: Element) = {
-    Option(e.getAttribute("transform")) match {
-      case Some(attr) if attr.getValue().startsWith("matrix(") =>
-        val trans = attr.getValue()
-        val firstN = trans.indexOf("(") + 1
-        val lastN = trans.size - trans.indexOf(")")
-        val transformArray = trans
-          .drop(firstN)
-          .dropRight(lastN)
-          .trim().split(" ")
-          .map(_.toDouble)
-        transformArray(3)
-      case _ => 
-        0
-    }
-  }
-
-
   def addLineAnnotation(annotator: Annotator): Annotator =  {
 
-    def fontSize(e: Element) = {
-        e.getAttribute("font-size").getValue().dropRight(2).toDouble
-    }
-
-    def y(e: Element) = {
-      e.getAttribute("y").getValue().toDouble 
-    }
-
-    def isSameLine(e1: Element, e2: Element) = {
-      val areSiblings = e1.getParent() == e2.getParent()
-      val haveSameY = Math.abs(y(e1)/fontSize(e1) - y(e2)/fontSize(e2)) < 0.5
-      val parentYTrans = yTransform(e1.getParentElement())
-      val areCousins = !areSiblings && e1.getParent().getParent() == e2.getParent().getParent()
-
-      (areSiblings && haveSameY) || (areCousins && parentYTrans < 12)
+    def isSameLine(e1: Element, e2: Element): Boolean = {
+      val lineThreshold = 7.0
+      val ancestor = Annotator.commonAncestor(e1, e2)
+      val (_, e1Ys) = Annotator.getTransformedCoords(e1, ancestor)
+      val (_, e2Ys) = Annotator.getTransformedCoords(e2, ancestor)
+      Math.abs(e1Ys(0) - e2Ys(0)) < lineThreshold 
     }
 
     val lineList = annotator.getElements().foldLeft(Queue[Queue[Element]]())((queueAcc, e) => {

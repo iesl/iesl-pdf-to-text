@@ -63,6 +63,103 @@ object Annotator {
     })
   }
 
+  def fontSize(e: Element) = {
+    e.getAttribute("font-size").getValue().dropRight(2).toDouble
+  }
+
+  def y(e: Element) = {
+    e.getAttribute("y").getValue().toDouble 
+  }
+
+  def xs(e: Element) = {
+    e.getAttribute("x").getValue().split(" ").map(_.toDouble) 
+  }
+
+  def commonAncestor(e1: Element, e2: Element): Element = {
+    require(e1 != null && e2 != null, "one of the elements has invalid null value")
+    if (e1 == e2) {
+      e1
+    } else {
+      commonAncestor(e1.getParentElement(), e2.getParentElement())
+    }
+  }
+
+  //svg matrix is defined at http://www.w3.org/TR/SVG/coords.html#EstablishingANewUserSpace
+  private type SvgMatrix = Array[Double]
+
+  private def svgMatrixMultiply(m1: SvgMatrix, m2: SvgMatrix): SvgMatrix = {
+    require(m1.size == 6  && m2.size == 6, "one or more SvgMatrix has invalid size instead of size of 6")
+
+    val _0 = m1(0) * m2(0) + m1(2) * m2(1) 
+    val _1 = m1(1) * m2(0) + m1(3) * m2(1)
+    val _2 = m1(0) * m2(2) + m1(2) * m2(3) 
+    val _3 = m1(1) * m2(2) + m1(3) * m2(3)
+    val _4 = m1(0) * m2(4) + m1(2) * m2(5) + m1(4) 
+    val _5 = m1(1) * m2(4) + m1(3) * m2(5) + m1(5) 
+    Array(_0, _1, _2, _3, _4, _5)
+  }
+
+  private def matrix(e: Element): SvgMatrix = {
+
+    val identity = Array(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+    def translate2Matrix(array: Array[Double]) = Array(1.0, 0.0, 0.0, 1.0, array(0), array(1))
+    def scale2Matrix(array: Array[Double]) = Array(array(0), 0.0, 0.0, array(1), 0.0, 0.0)
+
+    Option(e.getAttribute("transform")) match {
+      case Some(attr) if !attr.getValue().isEmpty  =>
+        attr.getValue().split("((?<=\\))[\\s,]+)").map(str => {
+          val firstN = str.indexOf("(") + 1
+          val lastN = str.size - str.indexOf(")")
+          val doubleArray = str.drop(firstN).dropRight(lastN).split("[\\s,]+").map(_.toDouble)
+          if (str.startsWith("matrix(")) {
+            assert(doubleArray.size == 6, "svg matrix has invalid size")
+            doubleArray
+          } else if (str.startsWith("translate(")) {
+            assert(doubleArray.size == 2, "svg translate has invalid size")
+            translate2Matrix(doubleArray)
+          } else if (str.startsWith("scale(")) {
+            assert(doubleArray.size == 2, "svg scale has invalid size")
+            scale2Matrix(doubleArray)
+          } else {
+            identity
+          }
+        }).foldLeft(identity) {
+          case (mAcc, m) => svgMatrixMultiply(mAcc, m)
+        }
+      case _ => 
+        identity
+    }
+  }
+
+  def getTransformedCoords(startE: Element, endE: Element): (List[Double], List[Double]) = {
+
+    def matrixTotal(e: Element): SvgMatrix = {
+      require(e != null)
+      val m = matrix(e)
+      if (e == endE) {
+        m
+      } else {
+        svgMatrixMultiply(matrixTotal(e.getParentElement()), m)
+      }
+    }
+
+    val m = matrixTotal(startE)
+    val startXs = xs(startE)
+    val startY = y(startE)
+
+    val _xs = startXs.map(x => {
+      m(0) * x + m(2) * startY + m(4)
+    })
+
+    val _ys = startXs.map(x => {
+      m(1) * x + m(3) * startY + m(5)
+    })
+
+    (_xs.toList, _ys.toList)
+
+  }
+
+
 }
 
 import Annotator._
