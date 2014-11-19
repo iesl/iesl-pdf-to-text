@@ -85,6 +85,7 @@ object Annotator {
   }
 
   //svg matrix is defined at http://www.w3.org/TR/SVG/coords.html#EstablishingANewUserSpace
+  //and at https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/transform
   private type SvgMatrix = Array[Double]
 
   private def svgMatrixMultiply(m1: SvgMatrix, m2: SvgMatrix): SvgMatrix = {
