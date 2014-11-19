@@ -21,8 +21,8 @@ object LineAnnotator {
     def isSameLine(e1: Element, e2: Element): Boolean = {
       val lineThreshold = 7.0
       val ancestor = Annotator.commonAncestor(e1, e2)
-      val (_, e1Ys) = Annotator.getTransformedCoords(e1, ancestor)
-      val (_, e2Ys) = Annotator.getTransformedCoords(e2, ancestor)
+      val (_, _, e1Ys) = Annotator.getTransformedCoords(e1, ancestor)
+      val (_, _, e2Ys) = Annotator.getTransformedCoords(e2, ancestor)
       Math.abs(e1Ys(0) - e2Ys(0)) < lineThreshold 
     }
 

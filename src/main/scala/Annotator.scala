@@ -75,6 +75,10 @@ object Annotator {
     e.getAttribute("x").getValue().split(" ").map(_.toDouble) 
   }
 
+  def endX(e: Element) = {
+    e.getAttribute("endX").getValue().toDouble 
+  }
+
   def commonAncestor(e1: Element, e2: Element): Element = {
     require(e1 != null && e2 != null, "one of the elements has invalid null value")
     if (e1 == e2) {
@@ -100,7 +104,7 @@ object Annotator {
     Array(_0, _1, _2, _3, _4, _5)
   }
 
-  private def matrix(e: Element): SvgMatrix = {
+  private def svgMatrix(e: Element): SvgMatrix = {
 
     val identity = Array(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
     def translate2Matrix(array: Array[Double]) = Array(1.0, 0.0, 0.0, 1.0, array(0), array(1))
@@ -132,11 +136,11 @@ object Annotator {
     }
   }
 
-  def getTransformedCoords(sourceE: Element, ancestorE: Element): (List[Double], List[Double]) = {
+  def getTransformedCoords(sourceE: Element, ancestorE: Element): (List[Double], Double, List[Double]) = {
 
     def matrixTotal(e: Element): SvgMatrix = {
       require(e != null)
-      val m = matrix(e)
+      val m = svgMatrix(e)
       if (e == ancestorE) {
         m
       } else {
@@ -156,7 +160,12 @@ object Annotator {
       m(1) * x + m(3) * sourceY + m(5)
     })
 
-    (_xs.toList, _ys.toList)
+    val _endX = m(0) * endX(sourceE) + m(2) * sourceY + m(4)
+
+    println("xs: " + _xs.mkString(" | "))
+    println("endX: " + _endX)
+
+    (_xs.toList, _endX, _ys.toList)
 
   }
 
