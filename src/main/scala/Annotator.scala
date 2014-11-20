@@ -162,9 +162,6 @@ object Annotator {
 
     val _endX = m(0) * endX(sourceE) + m(2) * sourceY + m(4)
 
-    println("xs: " + _xs.mkString(" | "))
-    println("endX: " + _endX)
-
     (_xs.toList, _endX, _ys.toList)
 
   }
