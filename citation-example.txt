@@ -1,0 +1,66 @@
+Token(0:John)   CitationLabel(B-authors:B-person:B-person-last)                                                     
+Token(5:Duchi)  CitationLabel(I-authors:I-person:I-person-last)                                                     
+Token(10:,)     CitationLabel(I-authors:I-person:I-person-last)                                                     
+Token(12:Elad)  CitationLabel(I-authors:B-person:B-person-first)                                                    
+Token(17:Hazan) CitationLabel(I-authors:I-person:B-person-last)                                                     
+Token(22:,)     CitationLabel(I-authors:I-person:I-person-last)                                                     
+Token(24:and)   CitationLabel(I-authors)                                                                            
+Token(28:Yoram) CitationLabel(I-authors:B-person:B-person-first)                                                    
+Token(34:Singer)        CitationLabel(I-authors:I-person:B-person-last)                                             
+Token(41:2011)  CitationLabel(B-date:B-year)                                                                        
+Token(45:.)     CitationLabel(I-date:I-year)                                                                        
+Token(53:Adaptive)      CitationLabel(B-title)                                                                      
+Token(62:sub)   CitationLabel(I-title)                                                                              
+Token(65:-)     CitationLabel(I-title)                                                                              
+Token(67:gradient)      CitationLabel(I-title)                                                                      
+Token(76:methods)       CitationLabel(I-title)                                                                      
+Token(84:for)   CitationLabel(I-title)                                                                              
+Token(88:online)        CitationLabel(I-title)                                                                      
+Token(95:learn) CitationLabel(I-title)                                                                              
+Token(100:-)    CitationLabel(I-title)                                                                              
+Token(108:ing)  CitationLabel(I-title)                                                                              
+Token(112:and)  CitationLabel(I-title)                                                                              
+Token(116:stochastic)   CitationLabel(I-title)                                                                      
+Token(127:optimization) CitationLabel(I-title)                                                                      
+Token(139:.)    CitationLabel(I-title)                                                                              
+Token(140:Journal)      CitationLabel(B-venue:B-journal)                                                            
+Token(148:of)   CitationLabel(I-venue:I-journal)                                                                    
+Token(151:Machine)      CitationLabel(I-venue:I-journal)                                                            
+Token(165:Learning)     CitationLabel(I-venue:I-journal)                                                            
+Token(174:Research)     CitationLabel(I-venue:I-journal)
+Token(183:()    CitationLabel(I-venue:I-journal)
+Token(184:JMLR) CitationLabel(I-venue:I-journal)
+Token(188:))    CitationLabel(I-venue:I-journal)
+Token(189:.)    CitationLabel(I-venue:I-journal)
+
+
+ref| |r
+f&l| |F    L      F    L          F     L    // on per/tok
+per| |p    $      p    $          p     $    // on auth/tok
+aut| |a    ~    ~ ~    ~    ~ ~   ~     $    // on tok
+
+yer| |                                         Y   // on dat/tok
+dat| |                                         D   // on tok
+
+tok| |t~~$ t~~~$T t~~$ t~~~$T t~$ t~~~$ t~~~~$ t~~$T
+lin| |l~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$
+   | |John Duchi, Elad Hazan, and Yoram Singer 2011.
+  
+ref| |~
+xtl| |x        ~    ~        ~       ~   ~      ~    ~ //title on tok
+tok| |t~~~~~~$ t~$T t~~~~~~$ t~~~~~$ t~$ t~~~~$ t~~~$T
+lin| |l~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$
+   | |Adaptive sub- gradient methods for online learn-
+  
+ref| |~
+xtl| |~   ~   ~          $                              //title on tok
+jou| |                                j       ~  ~      //journal on tok
+tok| |t~$ t~$ t~~~~~~~~$ t~~~~~~~~~~$Tt~~~~~$ t$ t~~~~~$
+lin| |l~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$
+   | |ing and stochastic optimization.Journal of Machine
+  
+ref| |$
+jou| |~        ~        ~~   $
+tok| |t~~~~~~$ t~~~~~~$ Tt~~$TT
+lin| |l~~~~~~~~~~~~~~~~~~~~~~~$
+   | |Learning Research (JMLR).
