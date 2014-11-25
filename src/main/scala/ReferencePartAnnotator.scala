@@ -206,7 +206,7 @@ object ReferencePartAnnotator {
     }
 
 
-    val typeLabelMapMap = docAndPairIndexSeqSet.flatMap {
+    val pairIndex2typeLabelMapList= docAndPairIndexSeqSet.flatMap {
       case (doc, pairIndexSeq) =>
         doc.tokens.map(token => {
           val labelTypeStringList = token.attr[CitationLabel].categoryValue.split(":")
@@ -224,7 +224,33 @@ object ReferencePartAnnotator {
 
           pairIndex -> typeLabelMap
         })
-    } toMap
+    } 
+
+    type IntPair = (Int, Int)
+    type StringLabelMap = Map[String, Label]
+    def replaceBIWithUL(
+        nextLabelMap: StringLabelMap, 
+        reverseList: List[(IntPair, StringLabelMap)]
+    ): List[(IntPair, StringLabelMap)] = {
+      reverseList match {
+        case Nil => 
+          List()
+        case (pairIndex, typeLabelMap)::xs =>
+          val _nextLabelMap = nextLabelMap ++ typeLabelMap
+          val _typeLabelMap = typeLabelMap.map { case (string, label) => 
+            (label, nextLabelMap.get(string)) match {
+              case (I, Some(B(_))) => (string -> L)
+              case (B(c), Some(B(_))) => (string -> U(c))
+              case _ => (string -> label)
+            }
+          }
+          (pairIndex -> _typeLabelMap)::replaceBIWithUL(_nextLabelMap, xs)
+      }
+
+
+    }
+
+    val typeLabelMapMap = replaceBIWithUL(HashMap[String, Label](), pairIndex2typeLabelMapList.toList.reverse).toMap
 
     val typeStrings = List("authors", "person", "person-last", "person-first", "date", "year", "title", "venue", "journal")
 
