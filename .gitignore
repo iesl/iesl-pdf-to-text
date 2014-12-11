@@ -36,3 +36,7 @@ node_modules
 
 #svg output
 svgdump
+
+# VIM
+*.sw?
+

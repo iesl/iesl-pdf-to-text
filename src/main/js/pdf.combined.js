@@ -22,8 +22,8 @@ if (typeof PDFJS === 'undefined') {
   (typeof window !== 'undefined' ? window : this).PDFJS = {};
 }
 
-PDFJS.version = '1.0.959';
-PDFJS.build = '0a4eece';
+PDFJS.version = '1.0.960';
+PDFJS.build = 'f580afc';
 
 (function pdfjsWrapper() {
   // Use strict in our context only - users might not want it
@@ -7368,6 +7368,15 @@ var SVGGraphics = (function SVGGraphicsClosure() {
 
       var spellings = [];
       var dists = [];
+
+      var spaceNum = 200;
+
+      if (this.lastEndX) {
+        if ((current.x - this.lastEndX) > spaceNum * textHScale * fontSize * 0.001) {
+          current.xcoords.push(this.lastEndX);
+          current.tspan.textContent += ' ';
+        }
+      } 
       
       var x = 0, i, ci; // ci = character index
       for (i = ci = 0; i < glyphsLength; ++i, ci=current.xcoords.length) {
@@ -7377,7 +7386,7 @@ var SVGGraphics = (function SVGGraphicsClosure() {
           x += fontDirection * wordSpacing;
           continue;
         } else if (isNum(glyph)) {
-          if (glyph < -200) {
+          if (glyph < -spaceNum) {
             current.xcoords.push(current.x + x * textHScale);
             current.tspan.textContent += ' ';
           }
@@ -7424,6 +7433,8 @@ var SVGGraphics = (function SVGGraphicsClosure() {
 
       var lineEndX = current.x + x * textHScale;
       current.tspan.setAttributeNS(null, 'endX', '' + lineEndX);
+
+      this.lastEndX = lineEndX;
 
       if (vertical) {
         current.y -= x * textHScale;
