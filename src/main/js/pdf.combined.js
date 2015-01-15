@@ -22,8 +22,8 @@ if (typeof PDFJS === 'undefined') {
   (typeof window !== 'undefined' ? window : this).PDFJS = {};
 }
 
-PDFJS.version = '1.0.960';
-PDFJS.build = 'f580afc';
+PDFJS.version = '1.0.961';
+PDFJS.build = 'a725e2c';
 
 (function pdfjsWrapper() {
   // Use strict in our context only - users might not want it
@@ -7203,7 +7203,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
     },
 
     nextLine: function SVGGraphics_nextLine() {
-      console.log('nextLine()');
       this.moveText(0, this.current.leading);
     },
 
@@ -7226,7 +7225,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
     },
 
     beginText: function SVGGraphics_beginText() {
-      console.log('call:beginText()');
       this.current.x = this.current.lineX = 0;
       this.current.y = this.current.lineY = 0;
       this.current.textMatrix = IDENTITY_MATRIX;
@@ -7239,13 +7237,11 @@ var SVGGraphics = (function SVGGraphicsClosure() {
     },
 
     moveText: function SVGGraphics_moveText(x, y) {
-      console.log('call:moveText('+x+', '+y+')');
       // if y stays the same, this is the same line.
       
       var current = this.current;
       this.current.x = this.current.lineX += x;
       this.current.y = this.current.lineY += y;
-      console.log('call:moveText:current.x = '+current.x);
       if (y*y>4) { // Arbitrary number to consider as newline
         // new line
         this.current.linegrp = document.createElementNS(NS, 'svg:g');
@@ -7263,7 +7259,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
     },
 
     showText: function SVGGraphics_showText(glyphs) {
-      console.log('call:showText()');
       var current = this.current;
       var font = current.font;
       var fontSize = current.fontSize;
@@ -7279,58 +7274,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
       var glyphsLength = glyphs.length;
       var vertical = font.vertical;
       var widthAdvanceScale = fontSize * current.fontMatrix[0];
-
-      console.log(
-        "\n"+
-        'fontSize;                '+fontSize+"\n"+
-        'current.charSpacing;                '+current.charSpacing+"\n"+
-        'current.wordSpacing;                '+current.wordSpacing+"\n"+
-        'current.fontDirection;              '+current.fontDirection+"\n"+
-        'current.textHScale * fontDirection; '+current.textHScale * fontDirection+"\n"+
-        'glyphs.length;                      '+glyphs.length+"\n"+
-        'font.vertical;                      '+font.vertical+"\n"+
-        'current.fontMatrix;          '+current.fontMatrix+"\n"+
-        'widthAdvanceScale (fontSize * current.fontMatrix[0]);   '+fontSize * current.fontMatrix[0]+"\n"+
-        "\n"
-      );
-
-      console.log('font info');
-      //console.log(font);
-      console.log(
-        //'font.compiledGlyphs :' + font.compiledGlyphs  + "\n" +
-          'font.name           :' + font.name            + "\n" +
-          'font.loadedName     :' + font.loadedName      + "\n" +
-          'font.isType3Font    :' + font.isType3Font     + "\n" +
-          'font.sizes          :' + font.sizes           + "\n" +
-          'font.glyphCache     :' + font.glyphCache      + "\n" +
-          'font.isSerifFont    :' + font.isSerifFont     + "\n" +
-          'font.isSymbolicFont :' + font.isSymbolicFont  + "\n" +
-          'font.isMonospace    :' + font.isMonospace     + "\n" +
-          'font.type           :' + font.type            + "\n" +
-          'font.fallbackName   :' + font.fallbackName    + "\n" +
-          'font.differences    :' + font.differences     + "\n" +
-          //'font.widths         :' + font.widths          + "\n" +
-          'font.defaultWidth   :' + font.defaultWidth    + "\n" +
-          'font.composite      :' + font.composite       + "\n" +
-          'font.wideChars      :' + font.wideChars       + "\n" +
-          'font.cMap           :' + font.cMap            + "\n" +
-          'font.ascent         :' + font.ascent          + "\n" +
-          'font.descent        :' + font.descent         + "\n" +
-          //'font.fontMatrix     :' + font.fontMatrix      + "\n" +
-          'font.toUnicode      :' + font.toUnicode       + "\n" +
-          'font.toFontChar     :' + font.toFontChar      + "\n" +
-          'font.cidEncoding    :' + font.cidEncoding  + "\n" +
-          'font.vertical       :' + font.vertical        + "\n" +
-          'font.mimetype       :' + font.mimetype        + "\n" 
-          // 'font.data           :' + font.data            + "\n"
-      );
-
-      console.log('font.widths');
-      // console.log(font.widths);
-      console.log('font.toUnicode');
-      // console.log(font.toUnicode);
-      console.log('font.glyphCache');
-      //console.log(font.glyphCache);
       
       //font.compiledGlyphs: {},
       //font.name: 'WSEJMA+CMBX12',
@@ -7394,9 +7337,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
           continue;
         }
 
-        console.log('glyph');
-        console.log(glyph);
-        console.log('gcEntry key: '+gcMap[glyph.unicode]);
 
         var glyphIndex = parseInt(gcMap[glyph.unicode]);
         var diff = font.differences[glyphIndex]; 
@@ -7404,11 +7344,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
           spellings[ci] = diff;
         }
         
-        console.log("font.widths[glyphIndex]     " + font.widths[glyphIndex]      );
-        console.log("font.toUnicode[glyphIndex]  " + font.toUnicode._map[glyphIndex]   );
-        console.log("font.differences[glyphIndex]" + font.differences[glyphIndex] );
-        console.log("font.toFontChar[glyphIndex] " + font.toFontChar[glyphIndex]  );
-
         // TODO should this be minus if text is vertical (like if statement below)?
         current.xcoords.push(current.x + x * textHScale);
 
@@ -7420,9 +7355,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
         var fwidth = font.widths[glyphIndex];
         var fwidthAS = fwidth * widthAdvanceScale + charSpacing * fontDirection;
         
-        console.log('fwidth: '+fwidth);
-        console.log('fwidthAS: '+fwidthAS);
-        console.log('charWidth: '+glyph.unicode+'=  '+charWidth);
         // create a map of dists between chars
         // if (charWidth > ) { }
 
@@ -7441,10 +7373,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
       } else {
         current.x += x * textHScale;
       }
-
-      console.log('Line content');
-      console.log('(x,y): ('+current.x+','+current.y+'), xcoords.len: '+current.xcoords.length);
-      console.log('text:'+current.tspan.textContent);
 
       if (current.tspan.textContent.match(/[\cA-\cZ]/)) {
         current.tspan.textContent = '';
@@ -7483,7 +7411,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
     },
 
     setLeadingMoveText: function SVGGraphics_setLeadingMoveText(x, y) {
-      console.log('call:setLeadingMoveText('+x+', '+y+')');
       this.setLeading(-y);
       this.moveText(x, y);
     },
@@ -7537,7 +7464,6 @@ var SVGGraphics = (function SVGGraphicsClosure() {
     },
 
     endText: function SVGGraphics_endText() {
-      console.log('call:endText()');
       if (this.current.pendingClip) {
         this.cgrp.appendChild(this.tgrp);
         this.pgrp.appendChild(this.cgrp);
