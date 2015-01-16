@@ -7,24 +7,19 @@ define(function(require) {
     var fs = require('fs');
 
     // Dumps svg outputs to a folder called svgdump
-    function writeToFile(svgdump, pdfPath) {
-        var name = getFileNameFromPath(pdfPath);
-        var dirName = "svgdump";
-        fs.mkdir('./' + dirName + '/', function(err) {
-            if (!err || err.code === 'EEXIST') {
-              fs.writeFile(
-                './' + dirName + '/' + name + '.svg', 
-                svgdump,
-                function(err) {
-                    if (err) {
-                        console.log('Error: ' + err);
-                    } else {
-                        console.log('Name: ' + name);
-                    }
-                }
-              );
+    function writeToFile(svgdump, pdfPath, svgPath) {
+      var name = getFileNameFromPath(pdfPath);
+      fs.writeFile(
+        svgPath, 
+        svgdump,
+        function(err) {
+            if (err) {
+                console.log('Error: ' + err);
+            } else {
+                console.log('Name: ' + name);
             }
-        });
+        }
+      );
     }
 
     // Get filename from the path
@@ -44,7 +39,7 @@ define(function(require) {
 
 
     //require('../../../../pdf.js-versions/pdf.js-iesl/build/singlefile/build/pdf.combined.js');
-    function renderPdfToSVG(filename, data) {
+    function renderPdfToSVG(filename, outputPath, data) {
 
         var jsdom = require('jsdom');
 
@@ -165,7 +160,7 @@ define(function(require) {
 
                 }, _.head(svgPages));
 
-                writeToFile(combinedSvg.toString(), filename);
+                writeToFile(combinedSvg.toString(), filename, outputPath);
                 
               });
             
