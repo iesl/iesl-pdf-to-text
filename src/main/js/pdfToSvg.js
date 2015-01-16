@@ -71,8 +71,6 @@ define(function(require) {
 
 
             var _ = require('underscore');
-            var SVGO = require('svgo');
-            var svgo = new SVGO({});
 
             PDFJS.getDocument(data).then(function (doc) {
               var numPages = doc.numPages;
@@ -167,9 +165,7 @@ define(function(require) {
 
                 }, _.head(svgPages));
 
-                svgo.optimize(combinedSvg.toString(), function(result) {
-                  writeToFile(result.data, filename);
-                }) 
+                writeToFile(combinedSvg.toString(), filename);
                 
               });
             
