@@ -5,6 +5,7 @@ if (typeof define !== 'function') {
 define(function(require) {
 
     var fs = require('fs');
+    var _ = require('underscore');
 
     // Dumps svg outputs to a folder called svgdump
     function writeToFile(svgdump, svgPath) {
@@ -64,7 +65,6 @@ define(function(require) {
             require('./node/domstubs.js');
 
 
-            var _ = require('underscore');
 
             PDFJS.getDocument(data).then(function (doc) {
               var numPages = doc.numPages;

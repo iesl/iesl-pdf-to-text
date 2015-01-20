@@ -22,8 +22,8 @@ if (typeof PDFJS === 'undefined') {
   (typeof window !== 'undefined' ? window : this).PDFJS = {};
 }
 
-PDFJS.version = '1.0.962';
-PDFJS.build = 'bd7897f';
+PDFJS.version = '1.0.963';
+PDFJS.build = 'fa498f0';
 
 (function pdfjsWrapper() {
   // Use strict in our context only - users might not want it
@@ -7374,7 +7374,11 @@ var SVGGraphics = (function SVGGraphicsClosure() {
         current.x += x * textHScale;
       }
 
-      if (current.tspan.textContent.match(/[\cA-\cZ]/)) {
+      //remove unknown chars
+      var unknownCharPattern = "[" + _.map(_.range(32), function(i) {
+        return String.fromCharCode(i);
+      }).join("") + "]";
+      if (current.tspan.textContent.match(new RegExp(unknownCharPattern))) {
         current.tspan.textContent = '';
       }
 
