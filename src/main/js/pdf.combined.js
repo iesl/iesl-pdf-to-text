@@ -22,8 +22,8 @@ if (typeof PDFJS === 'undefined') {
   (typeof window !== 'undefined' ? window : this).PDFJS = {};
 }
 
-PDFJS.version = '1.0.961';
-PDFJS.build = 'a725e2c';
+PDFJS.version = '1.0.962';
+PDFJS.build = 'bd7897f';
 
 (function pdfjsWrapper() {
   // Use strict in our context only - users might not want it
@@ -7597,6 +7597,8 @@ var SVGGraphics = (function SVGGraphicsClosure() {
 
     clip: function SVGGraphics_clip(type) {
       var current = this.current;
+
+      if (!current.element) return;
       // Add current path to clipping path
       current.clipId = 'clippath' + clipCount;
       clipCount++;
