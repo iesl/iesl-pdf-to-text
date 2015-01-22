@@ -40,3 +40,27 @@ svgdump
 # VIM
 *.sw?
 
+# Users Environment Variables
+.lock-wscript
+
+# SBT
+target
+project/target
+project/project
+lib_managed
+
+# IntelliJ IDEA
+.idea*
+.idea_modules
+*.iml
+
+# VIM
+*.sw?
+
+#svgs
+*.svg
+
+*~
+
+#crf model
+*.factorie
