@@ -15,28 +15,20 @@ import org.jdom2.Document
 import org.jdom2.util.IteratorIterable
 import org.jdom2.input.SAXBuilder
 
+import scala.io.Source
+
 import org.scalatest._
 
 import scala.sys.process._
 
 class PdfToSvgTest extends FlatSpec {
 
-
-
-  def expected(str: String) = {
-    str + ".expected.svg"
-  }
-
-  def actual(str: String) = {
-    str + ".actual.svg"
-  }
-
   val resourceInputPath = {
     getClass.getResource("/input").getPath() + "/"
   }
 
   def resourceOutputPath = {
-    getClass.getResource("/svg-output").getPath() + "/"
+    getClass.getResource("/output").getPath() + "/"
   }
 
   def build(builder: SAXBuilder)(fullPath: String) = {
@@ -45,118 +37,63 @@ class PdfToSvgTest extends FlatSpec {
 
   val mkDom = build(new SAXBuilder()) _
 
+  def getListFromPath(file: File) = {
+     val s = Source.fromFile(file)
+
+     val items = (s.getLines().foldLeft(List[String]("")) {
+       case (listAcc, line) =>
+         if (line == "") {
+           "" :: listAcc
+         } else {
+           (listAcc.head + line + "\n") :: listAcc.tail
+         }
+     }).filter(_ != "").map(_.dropRight(1)).reverse
+
+     s.close
+
+     items
+  }
+
   private def getTspanSeq(dom: Document): Seq[Element] = {
     dom.getRootElement().getDescendants(new ElementFilter("tspan")).toIterable.filter(e => {
       e.getText().size > 0
     }).toIndexedSeq
   }
 
-  def mkOutputSvgDoms(inputPath: String): (Document, Document) = {
+  def mkOutputSvgDom(inputPath: String): (Document) = {
     val inputName = inputPath.stripPrefix(resourceInputPath)
-    val expectedSvgPath = resourceOutputPath + (expected(inputName))
-    val actualSvgPath = resourceOutputPath + (actual(inputName))
+    val actualSvgPath = resourceOutputPath + inputName + ".actual.svg"
     assert(0 == Seq("bin/run.js", "--svg", "-i", inputPath, "-o", actualSvgPath).!)
-    (mkDom(expectedSvgPath), mkDom(actualSvgPath)) 
+    mkDom(actualSvgPath) 
   }
 
   Seq("find", resourceInputPath, "-type", "f").lines.foreach(inputPath => {
-    val (expectedDom, actualDom) = mkOutputSvgDoms(inputPath)
-    val (expectedTspanSeq, actualTspanSeq) = (getTspanSeq(expectedDom), getTspanSeq(actualDom))
 
-    val hasSpacesInMiddle = (tspan: Element) => (tspan.getText().indexOf(" ") > 0)
+    val inputName = inputPath.stripPrefix(resourceInputPath)
+    val tspanTextListFile = new File(
+      resourceOutputPath + 
+      inputName + ".expected/tspan-texts.txt"
+    ) 
 
-    if (expectedTspanSeq.indexWhere(hasSpacesInMiddle) >= 0) {
-      ("bin/run.js --svg with input: " + inputPath.stripPrefix(resourceInputPath)) should "produce svg with spaces between words of the same tspan" in {
-        expectedTspanSeq.zipWithIndex.foreach(p => {
-          val (tspan, i) = p
-          if (hasSpacesInMiddle(tspan)) {
+    if (tspanTextListFile.exists) {
+      ("rub/bin.js with input: " + inputName) should "produce tspan text with spaces between words\n" +
+      "and without space in the middle of words" in {
 
-            assertResult(tspan.getText()) { 
-              actualTspanSeq(i).getText() 
-            }
+        val expectedTspanTexts = getListFromPath(tspanTextListFile).toIndexedSeq
+        val actualTspanTexts = {
+          val actualDom = mkOutputSvgDom(inputPath)
+          val actualTspanSeq = getTspanSeq(actualDom)
+          actualTspanSeq.map(_.getText()).toIndexedSeq
+        }
 
-          }
+        expectedTspanTexts.zipWithIndex.map(p => {
+          val (expText, i) = p
+          val actText = actualTspanTexts(i)
+          assertResult(expText)(actText)
         })
       }
+
     }
-
-    val startsWithSpaceAndOnSameLine = (pair: (Element, Int)) => {
-      val (tspan, i) = pair
-      tspan.getText().startsWith(" ") && 
-      i > 0 && 
-      expectedTspanSeq(i - 1).getAttribute("y").getValue() == tspan.getAttribute("y").getValue()
-    }
-
-    if (expectedTspanSeq.zipWithIndex.indexWhere(startsWithSpaceAndOnSameLine) > 0) {
-      it should "produce svg with tspan that has space at beginning of text and that is on same line as its preceding tspan" in {
-        expectedTspanSeq.zipWithIndex.foreach(p => {
-          val (tspan, i) = p
-          if (startsWithSpaceAndOnSameLine(tspan -> i)) {
-            
-            assertResult(tspan.getText()) { 
-              actualTspanSeq(i).getText() 
-            }
-            assertResult(tspan.getAttribute("y").getValue()) { 
-              actualTspanSeq(i).getAttribute("y").getValue()
-            }
-            assertResult(expectedTspanSeq(i - 1).getAttribute("y").getValue()) { 
-              actualTspanSeq(i- 1).getAttribute("y").getValue()
-            }
-
-          }
-        })
-      }
-    }
-
-    val startsWithoutSpaceAndOnSameLine = (pair: (Element, Int)) => {
-      val (tspan, i) = pair
-      tspan.getText().startsWith(" ") && 
-      i > 0 && 
-      expectedTspanSeq(i - 1).getAttribute("y").getValue() == tspan.getAttribute("y").getValue()
-    }
-
-
-    if (expectedTspanSeq.zipWithIndex.indexWhere(startsWithoutSpaceAndOnSameLine) > 0) {
-      it should "produce svg with tspan that does not have space at beginning and that is on same line as its preceding tspan" in {
-        expectedTspanSeq.zipWithIndex.foreach(p => {
-          val (tspan, i) = p
-          if ((startsWithoutSpaceAndOnSameLine(tspan -> i))) {
-
-            assertResult(tspan.getText()) { 
-              actualTspanSeq(i).getText() 
-            }
-            assertResult(tspan.getAttribute("y").getValue()) { 
-              actualTspanSeq(i).getAttribute("y").getValue()
-            }
-            assertResult(expectedTspanSeq(i - 1).getAttribute("y").getValue()) { 
-              actualTspanSeq(i- 1).getAttribute("y").getValue()
-            }
-
-          }
-        })
-      }
-    }
-
-    val hasEndX = (tspan: Element) => tspan.getAttribute("endX") != null
-
-    if (expectedTspanSeq.indexWhere(hasEndX) >= 0) {
-      it should "produce an svg containing tspans with attribute endX" in {
-        expectedTspanSeq.zipWithIndex.foreach(p => {
-          val (tspan, i) = p
-          if (hasEndX(tspan)) {
-
-            assertResult(true) { 
-              actualTspanSeq(i).getAttribute("endX") != null 
-            }
-            assertResult(tspan.getAttribute("endX").getValue()) { 
-              actualTspanSeq(i).getAttribute("endX").getValue()
-            }
-
-          }
-        })
-      }
-    }
-
 
   })
 

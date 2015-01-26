@@ -1,0 +1,1137 @@
+arXiv:1301.4293v2  [cs.LG]  28 Jan 2013
+
+Latent Relation Representations for Universal
+
+Schemas
+
+Sebastian Riedel
+
+Department of Computer Science
+
+University College London
+
+S.Riedel@cs.ucl.ac.uk
+
+ Limin Yao, Andrew McCallum
+
+Department of Computer Science
+
+University of Massachusetts at Amherst
+
+{lmyao,mccallum}@cs.umass.edu
+
+1 Introduction
+
+Supervised relation extraction uses a pre-deﬁned schema of
+
+ relation types (such as
+
+ born-in
+
+ or
+
+employed-by
+
+). This approach requires labeling textual relations, a tim
+
+e-consuming and difﬁcult
+
+process. This has led to signiﬁcant interest in distantly-s
+
+upervised learning. Here one aligns exist-
+
+ing database records with the sentences in which these recor
+
+ds have been “rendered”, and from this
+
+labeling one can train a machine learning system as before [1
+
+, 2]. However, this method relies on
+
+the availability of a large database that has the desired sch
+
+ema.
+
+The need for pre-existing databases can be avoided by not hav
+
+ing any ﬁxed schema. This is the
+
+approach taken by OpenIE [3]. Here surface patterns between
+
+ mentions of concepts serve as rela-
+
+tions. This approach requires no supervision and has tremen
+
+dous ﬂexibility, but lacks the ability to
+
+generalize. For example, OpenIE may ﬁnd F
+
+ERGUSON
+
+–
+
+historian-at
+
+–H
+
+ARVARD
+
+ but does not know
+
+F
+
+ERGUSON
+
+–
+
+is-a-professor-at
+
+–H
+
+ARVARD
+
+.
+
+One way to gain generalization is to cluster textual surface
+
+ forms that have similar meaning [4, 5,
+
+6, 7]. While the clusters discovered by all these methods usu
+
+ally contain semantically related items,
+
+closer inspection invariably shows that they do not provide
+
+ reliable implicature. For example, a
+
+cluster may include
+
+ historian-at
+
+,
+
+ professor-at
+
+,
+
+ scientist-at
+
+,
+
+ worked-at
+
+. However,
+
+ scientist-at
+
+ does
+
+not necessarily imply
+
+ professor-at
+
+, and
+
+ worked-at
+
+ certainly does not imply
+
+ scientist-at
+
+. In fact, we
+
+contend that any relational schema would inherently be brit
+
+tle and ill-deﬁned––having ambiguities,
+
+problematic boundary cases, and incompleteness.
+
+In response to this problem, we present a new approach: impli
+
+cature with
+
+ universal schemas
+
+. Here
+
+we embrace the diversity and ambiguity of original inputs. T
+
+his is accomplished by deﬁning our
+
+schema to be the union of all source schemas: original input f
+
+orms, e.g. variants of surface patterns
+
+similarly to OpenIE, as well as relations in the schemas of pr
+
+e-existing structured databases. But
+
+unlike OpenIE, we learn asymmetric implicature among relat
+
+ions and entity types. This allows us
+
+to probabilistically “ﬁll in” inferred unobserved entity-
+
+entity relations in this union. For example,
+
+after observing F
+
+ERGUSON
+
+–
+
+historian-at
+
+–H
+
+ARVARD
+
+, our system infers that F
+
+ERGUSON
+
+–
+
+professor-
+
+at
+
+–H
+
+ARVARD
+
+, but not vice versa.
+
+At the heart of our approach is the hypothesis that we should c
+
+oncentrate on predicting source
+
+data––a relatively well deﬁned task that can be evaluated an
+
+d optimized––as opposed to modeling
+
+semantic equivalence, which we believe will always be illus
+
+ive.
+
+To reason with a universal schema, we learn latent feature re
+
+presentations of relations, tuples and en-
+
+tities. These act, through dot products, as natural paramet
+
+ers of a log-linear model for the probability
+
+that a given relation holds for a given tuple. We show experim
+
+entally that this approach signiﬁcantly
+
+outperforms a comparable baseline without latent features
+
+, and the current state-of-the-art distant
+
+supervision method.
+
+ 1
+
+2 Model
+
+We use
+
+ R
+
+ to denote the set of relations we seek to predict (such as
+
+ works-written
+
+ in Freebase, or
+
+the X–
+
+heads
+
+–Y pattern), and
+
+ T
+
+ to denote the set of input tuples. For simplicity we assume ea
+
+ch
+
+relation to be binary. Given a relation
+
+ r
+
+ ∈ R
+
+ and a tuple
+
+ t
+
+ ∈ T
+
+ the pair
+
+ h
+
+r,t
+
+i
+
+ is a
+
+ fact
+
+, or relation
+
+instance. The input to our model is a set of observed facts , an
+
+d the observed facts for a given tuple
+
+t
+
+ :
+
+=
+
+ {h
+
+r,t
+
+i ∈ }
+
+.
+
+Our goal is a model that can estimate, for a given relation
+
+ r
+
+ (such as X–
+
+historian-at
+
+–Y) and a given
+
+tuple
+
+ t
+
+ (such as <F
+
+ERGUSON
+
+,H
+
+ARVARD
+
+>) a score
+
+ c
+
+r,t
+
+ for the fact
+
+ h
+
+r,t
+
+i
+
+. This matrix completion
+
+problem is related to collaborative ﬁltering. We can think o
+
+f each tuple as a customer, and each
+
+relation as a product. Our goal is to predict how the tuple rat
+
+es the relation (rating 0 = false, rating 1
+
+= true), based on observed ratings in . We interpret
+
+ c
+
+r,t
+
+ as the probability
+
+ p
+
+(
+
+y
+
+r,t
+
+ = 1)
+
+ where
+
+ y
+
+r,t
+
+ is
+
+a binary random variable that is true iff
+
+ h
+
+r,t
+
+i
+
+ holds. To this end we introduce a series of exponential
+
+family models inspired by generalized PCA [8], a probabilis
+
+tic generalization of Principle Compo-
+
+nent Analysis. These models will estimate the conﬁdence in
+
+ h
+
+r,t
+
+i
+
+ using a
+
+ natural parameter
+
+ θ
+
+r,t
+
+and the logistic function:
+
+ c
+
+r,t
+
+ :
+
+=
+
+ p
+
+(
+
+y
+
+r,t
+
+|
+
+θ
+
+r,t
+
+)
+
+ :
+
+=
+
+ 1
+
+1+exp(
+
+−
+
+θ
+
+r,t
+
+)
+
+.
+
+We follow[9] and use a ranking based objective function to es
+
+timate parameters of our models.
+
+Latent Feature Model
+
+ One way to deﬁne
+
+ θ
+
+r,t
+
+ is through a latent feature model F. We measure
+
+compatibility between relation
+
+ r
+
+ and tuple
+
+ t
+
+ as a dot product of two latent feature representations of
+
+size
+
+ K
+
+F
+
+:
+
+ a
+
+r
+
+ for relation
+
+ r
+
+, and
+
+ v
+
+t
+
+ for tuple
+
+ t
+
+. This gives
+
+ θ
+
+F
+
+r,t
+
+ :
+
+=
+
+ P
+
+K
+
+F
+
+k
+
+ a
+
+r,k
+
+v
+
+t,k
+
+ and corresponds to
+
+the original generalized PCA that learns a low-rank factori
+
+zation of
+
+ Θ = (
+
+θ
+
+r,t
+
+)
+
+.
+
+Neighborhood Model
+
+ We can interpolate the conﬁdence for a given tuple and relati
+
+on based on
+
+the trueness of other similar relations for the same tuple. I
+
+n Collaborative Filtering this is referredas
+
+a
+
+ neighborhood-based
+
+ approach [10]. We implement a neighborhood model N via a set o
+
+f
+
+ weights
+
+w
+
+r,r
+
+′
+
+, where each corresponds to a directed association strength
+
+ between relations
+
+ r
+
+ and
+
+ r
+
+′
+
+. Sum-
+
+ming these up gives
+
+ θ
+
+N
+
+r,t
+
+ :
+
+=
+
+ P
+
+r
+
+′
+
+∈
+
+t
+
+\{
+
+r
+
+}
+
+ w
+
+r,r
+
+′
+
+.
+
+1
+
+Entity Model
+
+ Relations have selectional preferences: they allow only ce
+
+rtain types in their ar-
+
+gument slots. To capture this observation, we learn a latent
+
+ entity representation from data. For
+
+each entity
+
+ e
+
+ we introduce a latent feature vector
+
+ t
+
+e
+
+ ∈
+
+ R
+
+l
+
+. In addition, for each relation
+
+ r
+
+ and
+
+argument slot
+
+ i
+
+ we introduce a feature vector
+
+ d
+
+i
+
+. Measuring compatibility of an entity tuple and
+
+relation amounts to summing up the compatibilities between
+
+ each argument slot representation and
+
+the corresponding entity representation:
+
+ θ
+
+E
+
+r,t
+
+ :
+
+=
+
+ P
+
+arity
+
+(
+
+r
+
+)
+
+i
+
+=1
+
+ P
+
+K
+
+E
+
+k
+
+ d
+
+i,k
+
+t
+
+t
+
+i
+
+,k
+
+.
+
+Combined Models
+
+ In practice all the above models can capture important aspec
+
+ts of the data.
+
+Hence we also use various combinations, such as
+
+ θ
+
+N,F,E
+
+r,t
+
+ :
+
+=
+
+ θ
+
+N
+
+r,t
+
+ +
+
+ θ
+
+F
+
+r,t
+
+ +
+
+ θ
+
+E
+
+r,t
+
+.
+
+3 Experiments
+
+Does reasoning jointly across a universal schema help to imp
+
+rove over more isolated approaches?
+
+In the following we seek to answer this question empirically
+
+.
+
+Data
+
+ Our experimental setup is roughly equivalent to previous wo
+
+rk [2], and hence we omit de-
+
+tails. To summarize, we consider each pair
+
+ h
+
+t
+
+1
+
+,t
+
+2
+
+i
+
+ of Freebase entities that appear together in a
+
+corpus. Its set of observed facts
+
+ t
+
+ correspond to: Extracted surface patterns (in our case
+
+ lexicalized
+
+dependency paths
+
+) between mentions of
+
+ t
+
+1
+
+ and
+
+ t
+
+2
+
+, and the relations of
+
+ t
+
+1
+
+ and
+
+ t
+
+2
+
+ in Freebase. We
+
+divide all our tuples into approximately 200k training tupl
+
+es, and 200k test tuples. The total number
+
+of relations (patterns and from Freebase) is approximately
+
+ 4k.
+
+1
+
+Notice that the neighborhood model amounts to a collection o
+
+f local log-linear classiﬁers, one for each
+
+relation
+
+ r
+
+ with weights
+
+ w
+
+r
+
+.
+
+ 2
+
+Predicting Freebase and Surface Pattern Relations
+
+ For evaluation we use two collections of
+
+relations: Freebase relations and surface patterns. In eit
+
+her case we compare the competing systems
+
+with respect to their ranked results for each relation in the
+
+ collection.
+
+Our ﬁrst baseline is MI09, a distantly supervised classiﬁer
+
+ based on the work of [1]. We also
+
+compare against YA11, a version of MI09 that uses preprocess
+
+ed pattern cluster features according
+
+to [7]. The third baseline is SU12, the state-of-the-art Mul
+
+ti-Instance Multi-Label system by [11].
+
+The remaining systems are our neighborhood model (N),the fa
+
+ctorized model (F), their combination
+
+(NF) and the combined model with a latent entity representat
+
+ion (NFE).
+
+The results in terms of mean average precision (with respect
+
+ to pooled results from each system) are
+
+in the table below:
+
+Relation #
+
+MI09 YA11 SU12
+
+N F NF NFE
+
+Total Freebase 334
+
+0.48 0.52 0.57
+
+0.52 0.66 0.67 0.69
+
+Total Pattern 329
+
+ 0.28 0.56 0.50 0.46
+
+ForFreebase relations,we can see that adding pattern clust
+
+er features(and hence in corporating more
+
+data) helps YA11 to improve over MI09. Likewise, we see that t
+
+he factorized model F improves
+
+over N, again learning from unlabeled data. This improvemen
+
+t is bigger than the corresponding
+
+change between MI09 and YA11, possibly indicating that our l
+
+atent representations are optimized
+
+directly towards improving prediction performance. Our be
+
+st model, the combinationof N, F and E,
+
+outperforms all other models in terms of total MAP, indicati
+
+ng the power of selectional preferences
+
+learned from data.
+
+MI09, YA11 and SU12 are designed to predict structured relat
+
+ions, and so we omit them for results
+
+on surface patterns. Look at our models for predicting tuple
+
+s of surface patterns. We again see that
+
+learning a latent representation (F, NF and NFE models) from
+
+ additional data helps substantially
+
+over the non-latent N model.
+
+All our models are fast to train. The slowest model trains in j
+
+ust 30 minutes. By contrast, training
+
+the topic model in YA11 alone takes 4 hours. Training SU12 tak
+
+es two hours (on less data). Also
+
+notice that our models not only learn to predict Freebase rel
+
+ations, but also approximately 4k surface
+
+pattern relations.
+
+4 Conclusion
+
+We represent relations using universal schemas. Such schem
+
+as contain surface patterns as relations,
+
+as well as relations from structured sources. We can predict
+
+ missing tuples for surface pattern rela-
+
+tions and structured schema relations. We show this experim
+
+entally by contrasting a series of popular
+
+weakly supervised models to our collaborative ﬁltering mod
+
+els that learn latent feature representa-
+
+tions across surface patterns and structured relations. Mo
+
+reover, our models are computationally
+
+efﬁcient, requiring less time than comparable methods, whi
+
+le learning more relations.
+
+Reasoning with universal schemas is not merely a tool for inf
+
+ormation extraction. It can also serve
+
+as a framework for various data integration tasks, for examp
+
+le, schema matching. In future work we
+
+also plan to integrate universal entity types and attribute
+
+s into the model.
+
+References
+
+[1] Mike Mintz, Steven Bills, Rion Snow, and Daniel Jurafsky
+
+. Distant supervision for relation
+
+extraction without labeled data. In
+
+ Proceedings of the Joint Conference of the 47th Annual
+
+Meeting of the ACL and the 4th International Joint Conferenc
+
+e on Natural Language Process-
+
+ing of the AFNLP (ACL ’09)
+
+, pages 1003–1011. Association for Computational Linguist
+
+ics,
+
+2009.
+
+[2] Sebastian Riedel, Limin Yao, and Andrew McCallum. Model
+
+ing relations and their mentions
+
+without labeled text. In
+
+ Proceedings of the European Conference on Machine Learning
+
+ and
+
+Knowledge Discovery in Databases (ECML PKDD ’10)
+
+, 2010.
+
+[3] Oren Etzioni, Michele Banko, Stephen Soderland, and Dan
+
+iel S. Weld. Open information
+
+extraction from the web.
+
+ Commun. ACM
+
+, 51(12):68–74,2008.
+
+3
+
+[4] Dekang Lin and Patrick Pantel. DIRT - discovery of infere
+
+nce rules from text. In
+
+ Knowledge
+
+Discovery and Data Mining
+
+, pages 323–328, 2001.
+
+[5] Patrick Pantel, Rahul Bhagat, Bonaventura Coppola, Tim
+
+othy Chklovski, and Eduard Hovy.
+
+ISP: Learning Inferential Selectional Preferences. In
+
+ Proceedings of NAACL HLT
+
+, 2007.
+
+[6] Alexander Yates and Oren Etzioni. Unsupervised methods
+
+ for determining object and relation
+
+synonyms on the web.
+
+ Journal of Artiﬁcial Intelligence Research
+
+, 34:255–296,2009.
+
+[7] Limin Yao, Aria Haghighi, Sebastian Riedel, and Andrew M
+
+cCallum. Structured relation
+
+discovery using generative models. In
+
+ Proceedings of the Conference on Empirical methods
+
+in natural language processing (EMNLP ’11)
+
+, July 2011.
+
+[8] Michael Collins, Sanjoy Dasgupta, and Robert E. Schapir
+
+e. A generalization of principal
+
+component analysis to the exponential family. In
+
+ Proceedings of NIPS
+
+, 2001.
+
+[9] Steffen Rendle, Christoph Freudenthaler, Zeno Gantner
+
+, and Lars Schmidt-Thieme. Bpr:
+
+Bayesian personalized ranking from implicit feedback. In
+
+ Proceedings of UAI
+
+, 2009.
+
+[10] Yehuda Koren. Factorization meets the neighborhood: a
+
+ multifaceted collaborative ﬁltering
+
+model. In
+
+ Proceedings of the 14th ACM SIGKDD international conferenc
+
+e on Knowledge
+
+discovery and data mining
+
+, KDD ’08, pages 426–434, New York, NY, USA, 2008. ACM.
+
+[11] Mihai Surdeanu, Julie Tibshirani, Ramesh Nallapati, a
+
+nd Christopher D. Manning. Multi-
+
+instance multi-label learning for relation extraction. In
+
+ Proceedings of EMNLP-CoNLL
+
+, 2012.
+
+4
