@@ -1,0 +1,11205 @@
+Deep
+
+ Linguistic
+
+ Analysis
+
+ f
+
+or
+
+ the
+
+ Accurate
+
+ Identiﬁcation
+
+ of
+
+Pr
+
+edicate-Ar
+
+gument
+
+ Relations
+
+Y
+
+usuk
+
+e
+
+ Miyao
+
+Department
+
+ of
+
+ Computer
+
+ Science
+
+Uni
+
+v
+
+ersity
+
+ of
+
+ T
+
+ok
+
+yo
+
+yusuke@is.s.u-tokyo.ac.jp
+
+ J
+
+un’ichi
+
+ Tsujii
+
+Department
+
+ of
+
+ Computer
+
+ Science
+
+Uni
+
+v
+
+ersity
+
+ of
+
+ T
+
+ok
+
+yo
+
+CREST
+
+,
+
+ JST
+
+tsujii@is.s.u-tokyo.ac.jp
+
+Abstract
+
+This
+
+ paper
+
+ e
+
+v
+
+aluates
+
+ the
+
+ accurac
+
+y
+
+ of
+
+ HPSG
+
+parsing
+
+ in
+
+ terms
+
+ of
+
+ the
+
+ identiﬁcation
+
+ of
+
+predicate-ar
+
+gument
+
+ relations.
+
+ W
+
+e
+
+ could
+
+ directly
+
+compare
+
+ the
+
+ output
+
+ of
+
+ HPSG
+
+ parsing
+
+ with
+
+ Prop-
+
+Bank
+
+ annotations,
+
+ by
+
+ assuming
+
+ a
+
+ unique
+
+ map-
+
+ping
+
+ from
+
+ HPSG
+
+ semantic
+
+ representation
+
+ into
+
+PropBank
+
+ annotation.
+
+ Ev
+
+en
+
+ though
+
+ PropBank
+
+w
+
+as
+
+ not
+
+ used
+
+ for
+
+ the
+
+ training
+
+ of
+
+ a
+
+ disambigua-
+
+tion
+
+ model,
+
+ an
+
+ HPSG
+
+ parser
+
+ achie
+
+v
+
+ed
+
+ the
+
+ ac-
+
+curac
+
+y
+
+ competiti
+
+v
+
+e
+
+ with
+
+ e
+
+xisting
+
+ studies
+
+ on
+
+ the
+
+task
+
+ of
+
+ identifying
+
+ PropBank
+
+ annotations.
+
+1
+
+ Intr
+
+oduction
+
+Recently
+
+,
+
+ deep
+
+ linguistic
+
+ analysis
+
+ has
+
+ successfully
+
+been
+
+ applied
+
+ to
+
+ real-w
+
+orld
+
+ te
+
+xts.
+
+ Se
+
+v
+
+eral
+
+ parsers
+
+ha
+
+v
+
+e
+
+ been
+
+ implemented
+
+ in
+
+ v
+
+arious
+
+ grammar
+
+ for
+
+-
+
+malisms
+
+ and
+
+ empirical
+
+ e
+
+v
+
+aluation
+
+ has
+
+ been
+
+ re-
+
+ported:
+
+ LFG
+
+ (Riezler
+
+ et
+
+ al.,
+
+ 2002;
+
+ Cahill
+
+ et
+
+ al.,
+
+2002;
+
+ Burk
+
+e
+
+ et
+
+ al.,
+
+ 2004),
+
+ L
+
+T
+
+A
+
+G
+
+ (Chiang,
+
+ 2000),
+
+CCG
+
+ (Hock
+
+enmaier
+
+ and
+
+ Steedman,
+
+ 2002b;
+
+ Clark
+
+ et
+
+al.,
+
+ 2002;
+
+ Hock
+
+enmaier
+
+,
+
+ 2003),
+
+ and
+
+ HPSG
+
+ (Miyao
+
+et
+
+ al.,
+
+ 2003;
+
+ Malouf
+
+ and
+
+ v
+
+an
+
+ Noord,
+
+ 2004).
+
+ Ho
+
+w-
+
+e
+
+v
+
+er
+
+,
+
+ their
+
+ accurac
+
+y
+
+ w
+
+as
+
+ still
+
+ belo
+
+w
+
+ the
+
+ state-of-the-
+
+art
+
+ PCFG
+
+ parsers
+
+ (Collins,
+
+ 1999;
+
+ Charniak,
+
+ 2000)
+
+ in
+
+terms
+
+ of
+
+ the
+
+ P
+
+ARSEV
+
+AL
+
+ score.
+
+ Since
+
+ deep
+
+ parsers
+
+can
+
+ output
+
+ deeper
+
+ representation
+
+ of
+
+ the
+
+ structure
+
+ of
+
+a
+
+ sentence,
+
+ such
+
+ as
+
+ predicate
+
+ ar
+
+gument
+
+ structures,
+
+se
+
+v
+
+eral
+
+ studies
+
+ reported
+
+ the
+
+ accurac
+
+y
+
+ of
+
+ predicate-
+
+ar
+
+gument
+
+ relations
+
+ using
+
+ a
+
+ treebank
+
+ de
+
+v
+
+eloped
+
+ for
+
+each
+
+ formalism.
+
+ Ho
+
+we
+
+v
+
+er
+
+,
+
+ resources
+
+ used
+
+ for
+
+ the
+
+e
+
+v
+
+aluation
+
+ were
+
+ not
+
+ a
+
+v
+
+ailable
+
+ for
+
+ other
+
+ formalisms,
+
+and
+
+ the
+
+ results
+
+ cannot
+
+ be
+
+ compared
+
+ with
+
+ each
+
+ other
+
+.
+
+In
+
+ this
+
+ paper
+
+,
+
+ we
+
+ emplo
+
+y
+
+ PropBank
+
+ (Kingsb
+
+ury
+
+and
+
+ P
+
+almer
+
+,
+
+ 2002)
+
+ for
+
+ the
+
+ e
+
+v
+
+aluation
+
+ of
+
+ the
+
+ accu-
+
+rac
+
+y
+
+ of
+
+ HPSG
+
+ parsing.
+
+ In
+
+ the
+
+ PropBank,
+
+ semantic
+
+ar
+
+guments
+
+ of
+
+ a
+
+ predicate
+
+ and
+
+ their
+
+ semantic
+
+ roles
+
+are
+
+ manually
+
+ annotated.
+
+ Since
+
+ the
+
+ PropBank
+
+ has
+
+been
+
+ de
+
+v
+
+eloped
+
+ independently
+
+ of
+
+ an
+
+y
+
+ grammar
+
+ for
+
+-
+
+malisms,
+
+ the
+
+ results
+
+ are
+
+ comparable
+
+ with
+
+ other
+
+ pub-
+
+lished
+
+ results
+
+ using
+
+ the
+
+ same
+
+ test
+
+ data.
+
+Interestingly
+
+,
+
+ se
+
+v
+
+eral
+
+ studies
+
+ suggested
+
+ that
+
+ the
+
+identiﬁcation
+
+ of
+
+ PropBank
+
+ annotations
+
+ w
+
+ould
+
+ re-
+
+quire
+
+ linguistically-moti
+
+v
+
+at
+
+ed
+
+ features
+
+ that
+
+ can
+
+ be
+
+ obtained
+
+ by
+
+ deep
+
+ linguistic
+
+ analysis
+
+ (Gildea
+
+ and
+
+Hock
+
+enmaier
+
+,
+
+ 2003;
+
+ Chen
+
+ and
+
+ Rambo
+
+w
+
+,
+
+ 2003).
+
+The
+
+y
+
+ emplo
+
+yed
+
+ a
+
+ CCG
+
+ (Steedman,
+
+ 2000)
+
+ or
+
+ L
+
+T
+
+A
+
+G
+
+(Schabes
+
+ et
+
+ al.,
+
+ 1988)
+
+ parser
+
+ to
+
+ acquire
+
+ syntac-
+
+tic/semantic
+
+ structures,
+
+ which
+
+ w
+
+ould
+
+ be
+
+ passed
+
+ to
+
+statistical
+
+ classiﬁer
+
+ as
+
+ features.
+
+ That
+
+ is,
+
+ the
+
+y
+
+ used
+
+deep
+
+ analysis
+
+ as
+
+ a
+
+ preprocessor
+
+ to
+
+ obtain
+
+ useful
+
+ fea-
+
+tures
+
+ for
+
+ training
+
+ a
+
+ probabilistic
+
+ model
+
+ or
+
+ statistical
+
+classiﬁer
+
+ of
+
+ a
+
+ semantic
+
+ ar
+
+gument
+
+ identiﬁer
+
+.
+
+ These
+
+results
+
+ imply
+
+ the
+
+ superiority
+
+ of
+
+ deep
+
+ linguistic
+
+ anal-
+
+ysis
+
+ for
+
+ this
+
+ task.
+
+Although
+
+ the
+
+ statistical
+
+ approach
+
+ seems
+
+ a
+
+ reason-
+
+able
+
+ w
+
+ay
+
+ for
+
+ de
+
+v
+
+eloping
+
+ an
+
+ accurate
+
+ identiﬁer
+
+ of
+
+PropBank
+
+ annotations,
+
+ this
+
+ study
+
+ aims
+
+ at
+
+ establish-
+
+ing
+
+ a
+
+ method
+
+ of
+
+ directly
+
+ comparing
+
+ the
+
+ outputs
+
+ of
+
+HPSG
+
+ parsing
+
+ with
+
+ the
+
+ PropBank
+
+ annotation
+
+ in
+
+ or
+
+-
+
+der
+
+ to
+
+ e
+
+xplicitly
+
+ demonstrate
+
+ the
+
+ a
+
+v
+
+ailability
+
+ of
+
+ deep
+
+parsers.
+
+ That
+
+ is,
+
+ we
+
+ do
+
+ not
+
+ apply
+
+ statistical
+
+ model
+
+nor
+
+ machine
+
+ learning
+
+ to
+
+ the
+
+ post-processing
+
+ of
+
+ the
+
+output
+
+ of
+
+ HPSG
+
+ parsing.
+
+ By
+
+ eliminating
+
+ the
+
+ ef
+
+fect
+
+of
+
+ post-processing,
+
+ we
+
+ can
+
+ directly
+
+ e
+
+v
+
+aluate
+
+ the
+
+ ac-
+
+curac
+
+y
+
+ of
+
+ deep
+
+ linguistic
+
+ analysis.
+
+Section
+
+ 2
+
+ introduces
+
+ recent
+
+ adv
+
+ances
+
+ in
+
+ deep
+
+ lin-
+
+guistic
+
+ analysis
+
+ and
+
+ the
+
+ de
+
+v
+
+elopment
+
+ of
+
+ semanti-
+
+cally
+
+ annotated
+
+ corpora.
+
+ Section
+
+ 3
+
+ describes
+
+ the
+
+ de-
+
+tails
+
+ of
+
+ the
+
+ implementation
+
+ of
+
+ an
+
+ HPSG
+
+ parser
+
+ e
+
+v
+
+al-
+
+uated
+
+ in
+
+ this
+
+ study
+
+.
+
+ Section
+
+ 4
+
+ discusses
+
+ a
+
+ problem
+
+ in
+
+adopting
+
+ PropBank
+
+ for
+
+ the
+
+ performance
+
+ e
+
+v
+
+aluation
+
+of
+
+ deep
+
+ linguistic
+
+ parsers
+
+ and
+
+ proposes
+
+ its
+
+ solution.
+
+Section
+
+ 5
+
+ reports
+
+ empirical
+
+ e
+
+v
+
+aluation
+
+ of
+
+ the
+
+ accu-
+
+rac
+
+y
+
+ of
+
+ the
+
+ HPSG
+
+ parser
+
+.
+
+2
+
+ Deep
+
+ linguistic
+
+ analysis
+
+ and
+
+semantically
+
+ annotated
+
+ cor
+
+pora
+
+Riezler
+
+ et
+
+ al.
+
+ (2002)
+
+ reported
+
+ the
+
+ successful
+
+ applica-
+
+tion
+
+ of
+
+ a
+
+ hand-crafted
+
+ LFG
+
+ (Bresnan,
+
+ 1982)
+
+ gram-
+
+mar
+
+ to
+
+ the
+
+ parsing
+
+ of
+
+ the
+
+ Penn
+
+ T
+
+reebank
+
+ (Marcus
+
+et
+
+ al.,
+
+ 1994)
+
+ by
+
+ e
+
+xploiting
+
+ v
+
+arious
+
+ techniques
+
+ for
+
+rob
+
+ust
+
+ parsing.
+
+ The
+
+ study
+
+ w
+
+as
+
+ impressi
+
+v
+
+e
+
+ because
+
+most
+
+ researchers
+
+ had
+
+ belie
+
+v
+
+ed
+
+ that
+
+ deep
+
+ linguistic
+
+analysis
+
+ of
+
+ real-w
+
+orld
+
+ te
+
+xt
+
+ w
+
+as
+
+ impossible.
+
+ Their
+
+success
+
+ o
+
+wed
+
+ much
+
+ to
+
+ a
+
+ consistent
+
+ ef
+
+fort
+
+ to
+
+ main-
+
+tain
+
+ a
+
+ wide-co
+
+v
+
+erage
+
+ LFG
+
+ grammar
+
+,
+
+ as
+
+ well
+
+ as
+
+ v
+
+ar
+
+-
+
+S
+
+VP
+
+ have
+
+ to
+
+ choose
+
+this particular moment
+
+S
+
+NP
+
+ VP
+
+ VP
+
+ NP
+
+they
+
+NP-1
+
+did
+
+ n’t
+
+*-1
+
+VP
+
+VP
+
+ARG0-
+
+choose
+
+ARG1-
+
+choose
+
+ARG0-
+
+choose
+
+REL-
+
+choose
+
+ Figure
+
+ 1:
+
+ Annotation
+
+ of
+
+ the
+
+ PropBank
+
+ious
+
+ techniques
+
+ for
+
+ rob
+
+ust
+
+ parsing.
+
+Ho
+
+we
+
+v
+
+er
+
+,
+
+ the
+
+ manual
+
+ de
+
+v
+
+elopment
+
+ of
+
+ wide-
+
+co
+
+v
+
+erage
+
+ linguistic
+
+ grammars
+
+ is
+
+ still
+
+ a
+
+ dif
+
+ﬁcult
+
+ task.
+
+Recent
+
+ progress
+
+ in
+
+ deep
+
+ linguistic
+
+ analysis
+
+ has
+
+mainly
+
+ depended
+
+ on
+
+ the
+
+ acquisition
+
+ of
+
+ le
+
+xicalized
+
+grammars
+
+ from
+
+ annotated
+
+ corpora
+
+ (Xia,
+
+ 1999;
+
+ Chen
+
+and
+
+ V
+
+ijay-Shank
+
+er
+
+,
+
+ 2000;
+
+ Chiang,
+
+ 2000;
+
+ Hock
+
+en-
+
+maier
+
+ and
+
+ Steedman,
+
+ 2002a;
+
+ Cahill
+
+ et
+
+ al.,
+
+ 2002;
+
+Frank
+
+ et
+
+ al.,
+
+ 2003;
+
+ Miyao
+
+ et
+
+ al.,
+
+ 2004).
+
+ This
+
+ ap-
+
+proach
+
+ not
+
+ only
+
+ allo
+
+ws
+
+ for
+
+ the
+
+ lo
+
+w-cost
+
+ de
+
+v
+
+elop-
+
+ment
+
+ of
+
+ wide-co
+
+v
+
+erage
+
+ grammars,
+
+ b
+
+ut
+
+ also
+
+ pro
+
+vides
+
+the
+
+ training
+
+ data
+
+ for
+
+ statistical
+
+ modeling
+
+ as
+
+ a
+
+ by-
+
+product.
+
+ Thus,
+
+ we
+
+ no
+
+w
+
+ ha
+
+v
+
+e
+
+ a
+
+ basis
+
+ for
+
+ inte
+
+grating
+
+statistical
+
+ language
+
+ modeling
+
+ with
+
+ deep
+
+ linguistic
+
+analysis.
+
+ T
+
+o
+
+ date,
+
+ accurate
+
+ parsers
+
+ ha
+
+v
+
+e
+
+ been
+
+ de
+
+v
+
+el-
+
+oped
+
+ for
+
+ L
+
+T
+
+A
+
+G
+
+ (Chiang,
+
+ 2000),
+
+ CCG
+
+ (Hock
+
+enmaier
+
+and
+
+ Steedman,
+
+ 2002b;
+
+ Clark
+
+ et
+
+ al.,
+
+ 2002;
+
+ Hock
+
+en-
+
+maier
+
+,
+
+ 2003),
+
+ and
+
+ LFG
+
+ (Cahill
+
+ et
+
+ al.,
+
+ 2002;
+
+ Burk
+
+e
+
+ et
+
+al.,
+
+ 2004).
+
+ Those
+
+ studies
+
+ ha
+
+v
+
+e
+
+ opened
+
+ up
+
+ the
+
+ appli-
+
+cation
+
+ of
+
+ deep
+
+ linguistic
+
+ analysis
+
+ to
+
+ practical
+
+ use.
+
+Ho
+
+we
+
+v
+
+er
+
+,
+
+ the
+
+ accurac
+
+y
+
+ of
+
+ those
+
+ parsers
+
+ w
+
+as
+
+ still
+
+belo
+
+w
+
+ PCFG
+
+ parsers
+
+ (Collins,
+
+ 1999;
+
+ Charniak,
+
+2000)
+
+ in
+
+ terms
+
+ of
+
+ the
+
+ P
+
+ARSEV
+
+AL
+
+ score,
+
+ i.e.,
+
+ labeled
+
+brack
+
+eting
+
+ accurac
+
+y
+
+ of
+
+ CFG-style
+
+ parse
+
+ trees.
+
+ Since
+
+one
+
+ adv
+
+antage
+
+ of
+
+ deep
+
+ parsers
+
+ is
+
+ that
+
+ the
+
+y
+
+ can
+
+ out-
+
+put
+
+ a
+
+ sort
+
+ of
+
+ semantic
+
+ representation,
+
+ e.g.
+
+ predicate-
+
+ar
+
+gument
+
+ structures,
+
+ se
+
+v
+
+eral
+
+ studies
+
+ ha
+
+v
+
+e
+
+ reported
+
+the
+
+ accurac
+
+y
+
+ of
+
+ predicate-ar
+
+gument
+
+ relations
+
+ (Hock-
+
+enmaier
+
+ and
+
+ Steedman,
+
+ 2002b;
+
+ Clark
+
+ et
+
+ al.,
+
+ 2002;
+
+Hock
+
+enmaier
+
+,
+
+ 2003;
+
+ Miyao
+
+ et
+
+ al.,
+
+ 2003).
+
+ Ho
+
+we
+
+v
+
+er
+
+,
+
+their
+
+ e
+
+v
+
+aluation
+
+ emplo
+
+yed
+
+ a
+
+ treebank
+
+ de
+
+v
+
+eloped
+
+ for
+
+a
+
+ speciﬁc
+
+ grammar
+
+ formalism.
+
+ Hence,
+
+ those
+
+ results
+
+cannot
+
+ be
+
+ compared
+
+ f
+
+airly
+
+ with
+
+ parsers
+
+ based
+
+ on
+
+other
+
+ formalisms
+
+ including
+
+ PCFG
+
+ parsers.
+
+At
+
+ the
+
+ same
+
+ time,
+
+ follo
+
+wing
+
+ the
+
+ great
+
+ success
+
+of
+
+ machine
+
+ learning
+
+ approaches
+
+ in
+
+ NLP
+
+,
+
+ man
+
+y
+
+ re-
+
+search
+
+ ef
+
+forts
+
+ are
+
+ being
+
+ de
+
+v
+
+oted
+
+ to
+
+ de
+
+v
+
+eloping
+
+ v
+
+ari-
+
+ous
+
+ annotated
+
+ corpora.
+
+ Notably
+
+,
+
+ se
+
+v
+
+eral
+
+ projects
+
+ are
+
+underw
+
+ay
+
+ to
+
+ annotate
+
+ lar
+
+ge
+
+ corpora
+
+ with
+
+ semantic
+
+information
+
+ such
+
+ as
+
+ semantic
+
+ relations
+
+ of
+
+ w
+
+ords
+
+ and
+
+coreferences.
+
+PropBank
+
+ (Kingsb
+
+ury
+
+ and
+
+ P
+
+almer
+
+,
+
+ 2002)
+
+ and
+
+ FrameNet
+
+ (Bak
+
+er
+
+ et
+
+ al.,
+
+ 1998)
+
+ are
+
+ lar
+
+ge
+
+ English
+
+ cor
+
+-
+
+pora
+
+ annotated
+
+ with
+
+ the
+
+ semantic
+
+ relations
+
+ of
+
+ w
+
+ords
+
+in
+
+ a
+
+ sentence.
+
+ Figure
+
+ 1
+
+ sho
+
+ws
+
+ an
+
+ e
+
+xample
+
+ of
+
+ the
+
+annotation
+
+ of
+
+ the
+
+ PropBank.
+
+ As
+
+ the
+
+ tar
+
+get
+
+ te
+
+xt
+
+ of
+
+the
+
+ PropBank
+
+ is
+
+ the
+
+ same
+
+ as
+
+ the
+
+ Penn
+
+ T
+
+reebank,
+
+ a
+
+syntactic
+
+ structure
+
+ is
+
+ gi
+
+v
+
+en
+
+ by
+
+ the
+
+ Penn
+
+ T
+
+reebank.
+
+The
+
+ PropBank
+
+ includes
+
+ additional
+
+ annotations
+
+ rep-
+
+resenting
+
+ a
+
+ predicate
+
+ and
+
+ its
+
+ semantic
+
+ ar
+
+guments
+
+ in
+
+a
+
+ syntactic
+
+ tree.
+
+ F
+
+or
+
+ e
+
+xample,
+
+ in
+
+ Figure
+
+ 1,
+
+ REL
+
+ de-
+
+notes
+
+ a
+
+ predicate,
+
+ “c
+
+hoose”
+
+,
+
+ and
+
+ ARG
+
+represents
+
+its
+
+ semantic
+
+ ar
+
+guments:
+
+ “the
+
+y”
+
+ for
+
+ the
+
+ 0th
+
+ ar
+
+gument
+
+(i.e.,
+
+ subject)
+
+ and
+
+ “this
+
+ particular
+
+ moment”
+
+ for
+
+ the
+
+1st
+
+ ar
+
+gument
+
+ (i.e.,
+
+ object).
+
+Existing
+
+ studies
+
+ applied
+
+ statistical
+
+ classiﬁers
+
+ to
+
+the
+
+ identiﬁcation
+
+ of
+
+ the
+
+ PropBank
+
+ or
+
+ FrameNet
+
+ an-
+
+notations.
+
+ Similar
+
+ to
+
+ man
+
+y
+
+ methods
+
+ of
+
+ applying
+
+ ma-
+
+chine
+
+ learning
+
+ to
+
+ NLP
+
+ tasks,
+
+ the
+
+y
+
+ ﬁrst
+
+ formulated
+
+the
+
+ task
+
+ as
+
+ identifying
+
+ in
+
+ a
+
+ sentence
+
+ each
+
+ ar
+
+gument
+
+of
+
+ a
+
+ gi
+
+v
+
+en
+
+ predicate.
+
+ Then,
+
+ parameters
+
+ of
+
+ the
+
+ iden-
+
+tiﬁer
+
+ were
+
+ learned
+
+ from
+
+ the
+
+ annotated
+
+ corpus.
+
+ Fea-
+
+tures
+
+ of
+
+ a
+
+ statistical
+
+ model
+
+ were
+
+ deﬁned
+
+ as
+
+ a
+
+ pat-
+
+tern
+
+ on
+
+ a
+
+ partial
+
+ structure
+
+ of
+
+ the
+
+ syntactic
+
+ tree
+
+ output
+
+by
+
+ an
+
+ automatic
+
+ parser
+
+ (Gildea
+
+ and
+
+ P
+
+almer
+
+,
+
+ 2002;
+
+Gildea
+
+ and
+
+ Jurafsk
+
+y
+
+,
+
+ 2002).
+
+Se
+
+v
+
+eral
+
+ studies
+
+ proposed
+
+ the
+
+ use
+
+ of
+
+ deep
+
+ linguis-
+
+tic
+
+ features,
+
+ such
+
+ as
+
+ predicate-ar
+
+gument
+
+ relations
+
+output
+
+ by
+
+ a
+
+ CCG
+
+ parser
+
+ (Gildea
+
+ and
+
+ Hock
+
+enmaier
+
+,
+
+2003)
+
+ and
+
+ deri
+
+v
+
+ation
+
+ trees
+
+ output
+
+ by
+
+ an
+
+ L
+
+T
+
+A
+
+G
+
+ parser
+
+(Chen
+
+ and
+
+ Rambo
+
+w
+
+,
+
+ 2003).
+
+ Both
+
+ studies
+
+ reported
+
+that
+
+ the
+
+ identiﬁcation
+
+ accurac
+
+y
+
+ impro
+
+v
+
+ed
+
+ by
+
+ in-
+
+troducing
+
+ such
+
+ deep
+
+ linguistic
+
+ features.
+
+ Although
+
+deep
+
+ analysis
+
+ has
+
+ not
+
+ outperformed
+
+ PCFG
+
+ parsers
+
+ in
+
+terms
+
+ of
+
+ the
+
+ accurac
+
+y
+
+ of
+
+ surf
+
+ace
+
+ structure,
+
+ these
+
+ re-
+
+sults
+
+ are
+
+ implicitly
+
+ supporting
+
+ the
+
+ necessity
+
+ of
+
+ deep
+
+linguistic
+
+ analysis
+
+ for
+
+ the
+
+ recognition
+
+ of
+
+ semantic
+
+relations.
+
+Ho
+
+we
+
+v
+
+er
+
+,
+
+ these
+
+ results
+
+ do
+
+ not
+
+ directly
+
+ reﬂect
+
+ the
+
+performance
+
+ of
+
+ deep
+
+ parsers.
+
+ Since
+
+ these
+
+ corpora
+
+pro
+
+vide
+
+ deeper
+
+ structure
+
+ of
+
+ a
+
+ sentence
+
+ than
+
+ surf
+
+ace
+
+parse
+
+ trees,
+
+ the
+
+y
+
+ w
+
+ould
+
+ be
+
+ suitable
+
+ for
+
+ the
+
+ e
+
+v
+
+alua-
+
+tion
+
+ of
+
+ deep
+
+ parsers.
+
+ In
+
+ Section
+
+ 4,
+
+ we
+
+ e
+
+xplore
+
+ the
+
+possibility
+
+ of
+
+ using
+
+ the
+
+ PropBank
+
+ for
+
+ the
+
+ e
+
+v
+
+aluation
+
+of
+
+ an
+
+ HPSG
+
+ parser
+
+.
+
+3
+
+ Implementation
+
+ of
+
+ an
+
+ HPSG
+
+ parser
+
+This
+
+ study
+
+ e
+
+v
+
+aluates
+
+ the
+
+ accurac
+
+y
+
+ of
+
+ a
+
+ general-
+
+purpose
+
+ HPSG
+
+ parser
+
+ that
+
+ outputs
+
+ predicate
+
+ ar
+
+gu-
+
+ment
+
+ structures.
+
+ While
+
+ details
+
+ ha
+
+v
+
+e
+
+ been
+
+ e
+
+xplained
+
+in
+
+ other
+
+ papers
+
+ (Miyao
+
+ et
+
+ al.,
+
+ 2003;
+
+ Miyao
+
+ et
+
+ al.,
+
+2004),
+
+ in
+
+ the
+
+ remainder
+
+ of
+
+ this
+
+ section,
+
+ we
+
+ brieﬂy
+
+re
+
+vie
+
+w
+
+ the
+
+ grammar
+
+ and
+
+ the
+
+ disambiguation
+
+ model
+
+of
+
+ our
+
+ HPSG
+
+ parser
+
+.
+
+S
+
+VP
+
+ have
+
+ to
+
+ choose
+
+this particular moment
+
+S
+
+NP
+
+ VP
+
+ VP
+
+ NP
+
+they
+
+NP-1
+
+did
+
+ n’t
+
+*-1
+
+VP
+
+VP
+
+arg
+
+ head
+
+head
+
+head
+
+ head
+
+ head
+
+head
+
+ head
+
+arg
+
+ arg
+
+ arg
+
+ arg
+
+mo
+
+d
+
+have
+
+ to
+
+choose
+
+this particular moment
+
+they
+
+did
+
+ n
+
+’t
+
+HEAD  
+
+verb
+
+SUBJ  < >
+
+COMPS  < >
+
+HEAD  
+
+noun
+
+SUBJ  < >
+
+COMPS  < >
+
+HEAD  
+
+verb
+
+SUBJ  <    >
+
+2
+
+HEAD  
+
+verb
+
+SUBJ  < _ >
+
+HEAD  
+
+verb
+
+SUBJ  <    >
+
+2
+
+HEAD  
+
+verb
+
+SUBJ  <    >
+
+1
+
+HEAD  
+
+verb
+
+SUBJ  <    >
+
+1
+
+HEAD  
+
+noun
+
+SUBJ  < >
+
+COMPS  < >
+
+head-comp
+
+head-comp
+
+head-comp
+
+head-comp
+
+subject-head
+
+ 1
+
+have
+
+ t
+
+o
+
+they
+
+ did
+
+ n
+
+’t
+
+HEAD  
+
+verb
+
+SUBJ  < >
+
+COMPS  < >
+
+HEAD  
+
+noun
+
+SUBJ  < >
+
+COMPS  < >
+
+HEAD  
+
+verb
+
+SUBJ  <    >
+
+COMPS  < >
+
+1
+
+HEAD  
+
+verb
+
+SUBJ  < 
+
+ >
+
+COMPS <    >
+
+HEAD  
+
+verb
+
+SUBJ  <    >
+
+COMPS  < >
+
+1
+
+HEAD  
+
+verb
+
+SUBJ  <    >
+
+COMPS  < >
+
+1
+
+1
+
+2
+
+2
+
+HEAD  
+
+verb
+
+SUBJ  < 
+
+ >
+
+COMPS <    >
+
+1
+
+3
+
+HEAD  
+
+verb
+
+SUBJ  <    >
+
+COMPS  < >
+
+1
+
+3
+
+1
+
+ choose
+
+ t
+
+his particular moment
+
+HEAD  
+
+noun
+
+SUBJ  < >
+
+COMPS  < >
+
+4
+
+HEAD  
+
+verb
+
+SUBJ  < 
+
+ >
+
+COMPS <    >
+
+1
+
+4
+
+Figure
+
+ 2:
+
+ Extracting
+
+ HPSG
+
+ le
+
+xical
+
+ entries
+
+ from
+
+ the
+
+Penn
+
+ T
+
+reebank-style
+
+ parse
+
+ tree
+
+3.1
+
+ Grammar
+
+The
+
+ grammar
+
+ used
+
+ in
+
+ this
+
+ paper
+
+ follo
+
+ws
+
+ the
+
+ theory
+
+of
+
+ HPSG
+
+ (Pollard
+
+ and
+
+ Sag,
+
+ 1994),
+
+ and
+
+ is
+
+ e
+
+xtracted
+
+from
+
+ the
+
+ Penn
+
+ T
+
+reebank
+
+ (Miyao
+
+ et
+
+ al.,
+
+ 2004).
+
+ In
+
+this
+
+ approach,
+
+ a
+
+ treebank
+
+ is
+
+ annotated
+
+ with
+
+ partially
+
+speciﬁed
+
+ HPSG
+
+ deri
+
+v
+
+ations
+
+ using
+
+ heuristic
+
+ rules.
+
+By
+
+ in
+
+v
+
+ersely
+
+ applying
+
+ schemata
+
+ to
+
+ the
+
+ deri
+
+v
+
+ations,
+
+partially
+
+ speciﬁed
+
+ constraints
+
+ are
+
+ percolated
+
+ and
+
+ in-
+
+te
+
+grated
+
+ into
+
+ le
+
+xical
+
+ entries,
+
+ and
+
+ a
+
+ lar
+
+ge
+
+ HPSG-style
+
+le
+
+xicon
+
+ is
+
+ e
+
+xtracted
+
+ from
+
+ the
+
+ treebank.
+
+Figure
+
+ 2
+
+ sho
+
+ws
+
+ an
+
+ e
+
+xample
+
+ of
+
+ e
+
+xtracting
+
+ HPSG
+
+le
+
+xical
+
+ entries
+
+ from
+
+ a
+
+ Penn
+
+ T
+
+reebank-style
+
+ parse
+
+tree.
+
+ Firstly
+
+,
+
+ gi
+
+v
+
+en
+
+ a
+
+ parse
+
+ tree
+
+ (the
+
+ top
+
+ of
+
+ the
+
+ ﬁg-
+
+ure),
+
+ we
+
+ annotate
+
+ partial
+
+ speciﬁcations
+
+ on
+
+ an
+
+ HPSG
+
+deri
+
+v
+
+ation
+
+ (the
+
+ middle).
+
+ Then,
+
+ HPSG
+
+ schemata
+
+ are
+
+applied
+
+ to
+
+ each
+
+ branching
+
+ in
+
+ the
+
+ deri
+
+v
+
+ation.
+
+ Finally
+
+,
+
+COMP
+
+S
+
+ <                         >
+
+S
+
+U
+
+B
+
+J
+
+ <                         >
+
+PHON  
+
+“choose”
+
+HEAD  
+
+verb
+
+REL  
+
+choose
+
+ARG
+
+0
+
+ARG
+
+1
+
+HEAD  
+
+noun
+
+SEM
+
+1
+
+HEAD  
+
+noun
+
+SEM
+
+2
+
+SEM
+
+1
+
+2
+
+Figure
+
+ 3:
+
+ Mapping
+
+ from
+
+ syntactic
+
+ ar
+
+guments
+
+ to
+
+ se-
+
+mantic
+
+ ar
+
+guments
+
+we
+
+ get
+
+ le
+
+xical
+
+ entries
+
+ for
+
+ all
+
+ of
+
+ the
+
+ w
+
+ords
+
+ in
+
+ the
+
+ tree
+
+(the
+
+ bottom).
+
+As
+
+ sho
+
+wn
+
+ in
+
+ the
+
+ ﬁgure,
+
+ we
+
+ can
+
+ also
+
+ obtain
+
+ com-
+
+plete
+
+ HPSG
+
+ deri
+
+v
+
+ation
+
+ trees,
+
+ i.e.,
+
+ an
+
+ HPSG
+
+ tree-
+
+bank.
+
+ It
+
+ is
+
+ a
+
+v
+
+ailable
+
+ for
+
+ the
+
+ machine
+
+ learning
+
+ of
+
+ dis-
+
+ambiguation
+
+ models,
+
+ and
+
+ can
+
+ also
+
+ be
+
+ used
+
+ for
+
+ the
+
+e
+
+v
+
+aluation
+
+ of
+
+ HPSG
+
+ parsing.
+
+In
+
+ an
+
+ HPSG
+
+ grammar
+
+,
+
+ syntax-to-semantics
+
+ map-
+
+pings
+
+ are
+
+ implemented
+
+ in
+
+ le
+
+xical
+
+ entries.
+
+ F
+
+or
+
+ e
+
+xam-
+
+ple,
+
+ when
+
+ we
+
+ ha
+
+v
+
+e
+
+ a
+
+ le
+
+xical
+
+ entries
+
+ for
+
+ “c
+
+hoose”
+
+as
+
+ sho
+
+wn
+
+ in
+
+ Figure
+
+ 3,
+
+ the
+
+ le
+
+xical
+
+ entry
+
+ includes
+
+mappings
+
+ from
+
+ syntactic
+
+ ar
+
+guments
+
+ (
+
+SUBJ
+
+ and
+
+COMPS
+
+ features)
+
+ into
+
+ a
+
+ predicate-ar
+
+gument
+
+ struc-
+
+ture
+
+ (
+
+ARG0
+
+ and
+
+ ARG1
+
+ features).
+
+ Ar
+
+gument
+
+ labels
+
+in
+
+ a
+
+ predicate-ar
+
+gument
+
+ structure
+
+ are
+
+ basically
+
+ de-
+
+ﬁned
+
+ in
+
+ a
+
+ left-to-right
+
+ order
+
+ of
+
+ syntactic
+
+ realizations,
+
+while
+
+ if
+
+ we
+
+ had
+
+ a
+
+ cue
+
+ for
+
+ a
+
+ mo
+
+v
+
+ement
+
+ in
+
+ the
+
+ Penn
+
+T
+
+reebank,
+
+ ar
+
+guments
+
+ are
+
+ put
+
+ in
+
+ its
+
+ canonical
+
+ posi-
+
+tion
+
+ in
+
+ a
+
+ predicate-ar
+
+gument
+
+ structure.
+
+3.2
+
+ Disambiguation
+
+ model
+
+By
+
+ grammar
+
+ e
+
+xtraction,
+
+ we
+
+ are
+
+ able
+
+ to
+
+ obtain
+
+ a
+
+ lar
+
+ge
+
+le
+
+xicon
+
+ together
+
+ with
+
+ complete
+
+ deri
+
+v
+
+ation
+
+ trees
+
+ of
+
+HPSG,
+
+ i.e,
+
+ an
+
+ HPSG
+
+ treebank.
+
+ The
+
+ HPSG
+
+ treebank
+
+can
+
+ then
+
+ be
+
+ used
+
+ as
+
+ training
+
+ data
+
+ for
+
+ the
+
+ machine
+
+learning
+
+ of
+
+ the
+
+ disambiguation
+
+ model.
+
+F
+
+ollo
+
+wing
+
+ recent
+
+ research
+
+ about
+
+ disambiguation
+
+models
+
+ on
+
+ linguistic
+
+ grammars
+
+ (Abne
+
+y
+
+,
+
+ 1997;
+
+ John-
+
+son
+
+ et
+
+ al.,
+
+ 1999;
+
+ Riezler
+
+ et
+
+ al.,
+
+ 2002;
+
+ Clark
+
+ and
+
+ Cur
+
+-
+
+ran,
+
+ 2003;
+
+ Miyao
+
+ et
+
+ al.,
+
+ 2003;
+
+ Malouf
+
+ and
+
+ v
+
+an
+
+ No-
+
+ord,
+
+ 2004),
+
+ we
+
+ apply
+
+ a
+
+ log-linear
+
+ model
+
+ or
+
+ maxi-
+
+mum
+
+ entrop
+
+y
+
+ model
+
+ (Ber
+
+ger
+
+ et
+
+ al.,
+
+ 1996)
+
+ on
+
+ HPSG
+
+deri
+
+v
+
+ations.
+
+ W
+
+e
+
+ represent
+
+ an
+
+ HPSG
+
+ sign
+
+ as
+
+ a
+
+ tu-
+
+ple
+
+,
+
+ where
+
+is
+
+ a
+
+ le
+
+xical
+
+ sign
+
+ of
+
+ the
+
+head
+
+ w
+
+ord,
+
+is
+
+ a
+
+ part-of-speech,
+
+ and
+
+is
+
+ a
+
+ sym-
+
+bol
+
+ representing
+
+ the
+
+ structure
+
+ of
+
+ the
+
+ sign
+
+ (mostly
+
+corresponding
+
+ to
+
+ nonterminal
+
+ symbols
+
+ of
+
+ the
+
+ Penn
+
+T
+
+reebank).
+
+ Gi
+
+v
+
+en
+
+ an
+
+ HPSG
+
+ schema
+
+and
+
+ the
+
+ dis-
+
+tance
+
+between
+
+ the
+
+ head
+
+ w
+
+ords
+
+ of
+
+ the
+
+ head/non-
+
+head
+
+ daughter
+
+ constituents,
+
+ each
+
+ (binary)
+
+ branch-
+
+ing
+
+ of
+
+ an
+
+ HPSG
+
+ deri
+
+v
+
+ation
+
+ is
+
+ represented
+
+ as
+
+ a
+
+ tuple
+
+,
+
+ where
+
+–
+
+ –
+
+–
+
+ –
+
+ –
+
+–
+
+ –
+
+–
+
+–
+
+–
+
+–
+
+–
+
+–
+
+ –
+
+–
+
+–
+
+ –
+
+–
+
+ –
+
+–
+
+–
+
+–
+
+–
+
+–
+
+T
+
+able
+
+ 1:
+
+ Feature
+
+ function
+
+ templates
+
+ used
+
+ in
+
+ the
+
+ dis-
+
+ambiguation
+
+ model
+
+ of
+
+ HPSG
+
+ parsing:
+
+ for
+
+ binary
+
+schema
+
+ applications
+
+ (top)
+
+ and
+
+ for
+
+ unary
+
+ ones
+
+ (bot-
+
+tom)
+
+denote
+
+ head/non-head
+
+ daughters.
+
+1
+
+ Since
+
+ an
+
+ HPSG
+
+deri
+
+v
+
+ation
+
+is
+
+ represented
+
+ by
+
+ a
+
+ set
+
+ of
+
+ B,
+
+ a
+
+ prob-
+
+ability
+
+ of
+
+assigned
+
+ to
+
+ sentence
+
+is
+
+ deﬁned
+
+ as
+
+follo
+
+ws:
+
+ $*),+
+
+ ).-/)
+
+ is
+
+ a
+
+ probability
+
+ of
+
+ a
+
+ sequence
+
+ of
+
+ le
+
+xical
+
+ en-
+
+tries,
+
+ and
+
+ is
+
+ deﬁned
+
+ as
+
+ the
+
+ product
+
+ of
+
+ unigram
+
+ prob-
+
+abilities
+
+ )
+
+ 3
+
+ )
+
+,
+
+ where
+
+)
+
+is
+
+ a
+
+ le
+
+xical
+
+ entry
+
+ assigned
+
+to
+
+ w
+
+ord
+
+ 3
+
+)
+
+.
+
+ W
+
+e
+
+ di
+
+vided
+
+ the
+
+ probability
+
+ into
+
+and
+
+in
+
+ order
+
+ to
+
+ accelerate
+
+ the
+
+ estimation
+
+of
+
+ the
+
+ probability
+
+ model
+
+ by
+
+ using
+
+as
+
+ a
+
+ ref-
+
+erence
+
+ distrib
+
+ution
+
+ (Miyao
+
+ et
+
+ al.,
+
+ 2003),
+
+ because
+
+ the
+
+direct
+
+ estimation
+
+ of
+
+w
+
+as
+
+ computationally
+
+e
+
+xpensi
+
+v
+
+e.
+
+Feature
+
+ function
+
+ -
+
+)
+
+returns
+
+ 1
+
+ when
+
+ a
+
+ cer
+
+-
+
+tain
+
+ part
+
+ of
+
+ tuple
+
+is
+
+ observ
+
+ed.
+
+ T
+
+able
+
+ 1
+
+lists
+
+ templates
+
+ of
+
+ feature
+
+ functions
+
+ used
+
+ in
+
+ the
+
+disambiguation
+
+ model,
+
+ where
+
+ a
+
+ check
+
+ means
+
+that
+
+ the
+
+ corresponding
+
+ element
+
+ in
+
+ the
+
+ tuple
+
+ is
+
+seen.
+
+ F
+
+or
+
+ e
+
+xample,
+
+ when
+
+ we
+
+ ha
+
+v
+
+e
+
+ a
+
+ branching
+
+head
+
+comp
+
+76
+
+tr
+
+ans
+
+VB
+
+VP
+
+noun
+
+NNS
+
+NP
+
+,
+
+ 2
+
+the
+
+ follo
+
+wing
+
+ feature
+
+ functions
+
+ return
+
+ 1,
+
+ while
+
+ all
+
+1
+
+A
+
+ unary
+
+ branching
+
+ is
+
+ represented
+
+ by
+
+.
+
+2
+
+In
+
+ this
+
+ e
+
+xample,
+
+ head
+
+ comp
+
+ and
+
+ tr
+
+ans
+
+ stand
+
+ for
+
+ the
+
+ Head
+
+Complement
+
+ Schema
+
+ and
+
+ a
+
+ transiti
+
+v
+
+e
+
+ v
+
+erb
+
+.
+
+ In
+
+ our
+
+ probabilistic
+
+model,
+
+ le
+
+xical
+
+ entry
+
+ templates
+
+ are
+
+ more
+
+ ﬁne-grained
+
+ (as
+
+ sho
+
+wn
+
+in
+
+ Section
+
+ 5,
+
+ a
+
+ grammar
+
+ has
+
+ more
+
+ than
+
+ 1,000
+
+ templates),
+
+ while
+
+we
+
+ used
+
+ a
+
+ simple
+
+ e
+
+xample
+
+ here.
+
+S
+
+ the window
+
+He
+
+ NP
+
+ NP
+
+VP
+
+ARG0-
+
+broke
+
+ARG1-
+
+broke
+
+broke
+
+ REL-
+
+broke
+
+S
+
+the window
+
+NP
+
+ VP
+
+ARG1-
+
+broke
+
+ broke
+
+REL-
+
+broke
+
+Figure
+
+ 4:
+
+ Annotation
+
+ of
+
+ an
+
+ er
+
+gati
+
+v
+
+e
+
+ v
+
+erb
+
+ in
+
+ the
+
+ Prop-
+
+Bank
+
+S
+
+the window
+
+ NP
+
+ VP
+
+ARG1-
+
+broke
+
+broke
+
+into
+
+ PP
+
+NP
+
+a million pieces
+
+ARG3-
+
+broke
+
+REL-
+
+broke
+
+ Figure
+
+ 5:
+
+ Annotation
+
+ of
+
+ another
+
+ usage
+
+ of
+
+ “brok
+
+e”
+
+the
+
+ other
+
+ features
+
+ are
+
+ 0:
+
+C
+
+head
+
+comp
+
+DFEGD
+
+tr
+
+ans
+
+D
+
+VB
+
+D
+
+VP
+
+D
+
+noun
+
+D
+
+NNS
+
+D
+
+NP
+
+H
+
+C
+
+ head
+
+comp
+
+D
+
+D
+
+tr
+
+ans
+
+D
+
+VB
+
+D
+
+VP
+
+D
+
+noun
+
+D
+
+NNS
+
+D
+
+NP
+
+H
+
+C
+
+ head
+
+comp
+
+DIE*D
+
+D
+
+VB
+
+D
+
+VP
+
+D
+
+D
+
+NNS
+
+D
+
+NP
+
+H
+
+C
+
+ head
+
+comp
+
+D
+
+D
+
+D
+
+VB
+
+D
+
+VP
+
+D
+
+D
+
+NNS
+
+D
+
+NP
+
+H
+
+C
+
+ head
+
+comp
+
+DIE*D
+
+tr
+
+ans
+
+D
+
+VB
+
+D
+
+D
+
+noun
+
+D
+
+NNS
+
+D
+
+H
+
+C
+
+ head
+
+comp
+
+D
+
+D
+
+tr
+
+ans
+
+D
+
+VB
+
+D
+
+D
+
+noun
+
+D
+
+NNS
+
+D
+
+H
+
+C
+
+ head
+
+comp
+
+DFEGD
+
+D
+
+VB
+
+D
+
+D
+
+D
+
+NNS
+
+D
+
+H
+
+C
+
+ head
+
+comp
+
+D
+
+D
+
+D
+
+VB
+
+D
+
+D
+
+D
+
+NNS
+
+D
+
+H
+
+Gi
+
+v
+
+en
+
+ the
+
+ HPSG
+
+ treebank
+
+ as
+
+ training
+
+ data,
+
+ the
+
+model
+
+ parameters
+
++
+
+)
+
+are
+
+ ef
+
+ﬁciently
+
+ estimated
+
+ using
+
+a
+
+ dynamic
+
+ programming
+
+ algorithm
+
+ for
+
+ maximum
+
+entrop
+
+y
+
+ estimation
+
+ (Miyao
+
+ and
+
+ Tsujii,
+
+ 2002;
+
+ Geman
+
+and
+
+ Johnson,
+
+ 2002).
+
+4
+
+ Ev
+
+aluating
+
+ HPSG
+
+ parsing
+
+ with
+
+semantically
+
+ annotated
+
+ cor
+
+pora
+
+Our
+
+ study
+
+ aims
+
+ to
+
+w
+
+ard
+
+ the
+
+ f
+
+air
+
+ e
+
+v
+
+aluation
+
+ of
+
+ deep
+
+linguistic
+
+ parsers,
+
+ thus
+
+ we
+
+ w
+
+ant
+
+ to
+
+ directly
+
+ compare
+
+the
+
+ output
+
+ of
+
+ HPSG
+
+ parsing
+
+ with
+
+ hand-annotated
+
+test
+
+ data.
+
+ Ho
+
+we
+
+v
+
+er
+
+,
+
+ disagreements
+
+ between
+
+ the
+
+ out-
+
+put
+
+ of
+
+ HPSG
+
+ parser
+
+ and
+
+ the
+
+ PropBank
+
+ pre
+
+v
+
+ents
+
+ us
+
+from
+
+ a
+
+ direct
+
+ comparison.
+
+In
+
+ the
+
+ PropBank
+
+ annotation,
+
+ semantic
+
+ ar
+
+guments
+
+can
+
+ occur
+
+ in
+
+ multiple
+
+ syntactic
+
+ realizations,
+
+ as
+
+ in
+
+ the
+
+follo
+
+wing
+
+ e
+
+xample
+
+ (Figure
+
+ 4).
+
+1.
+
+ He
+
+ brok
+
+e
+
+ the
+
+ windo
+
+w
+
+.
+
+2.
+
+ The
+
+ windo
+
+w
+
+ brok
+
+e.
+
+In
+
+ the
+
+ ﬁrst
+
+ e
+
+xample,
+
+ a
+
+ semantic
+
+ object
+
+ appears
+
+ in
+
+ a
+
+syntactic
+
+ object
+
+ position,
+
+ while
+
+ in
+
+ the
+
+ second
+
+ sen-
+
+tence
+
+ it
+
+ becomes
+
+ the
+
+ syntactic
+
+ subject.
+
+ This
+
+ alterna-
+
+tion
+
+ is
+
+ caused
+
+ by
+
+ tw
+
+o
+
+ reasons:
+
+ syntactic
+
+ alternations
+
+such
+
+ as
+
+ passi
+
+v
+
+e
+
+ constructions
+
+ and
+
+ long-distance
+
+ de-
+
+pendencies,
+
+ and
+
+ le
+
+xical
+
+ alternations
+
+ such
+
+ as
+
+ er
+
+ga-
+
+ti
+
+v
+
+e
+
+ v
+
+erbs.
+
+ It
+
+ should
+
+ also
+
+ be
+
+ noted
+
+ that
+
+ the
+
+ assign-
+
+ment
+
+ of
+
+ ar
+
+gument
+
+ labels
+
+ ha
+
+v
+
+e
+
+ some
+
+ arbitrariness.
+
+F
+
+or
+
+ e
+
+xample,
+
+ Figure
+
+ 5
+
+ sho
+
+ws
+
+ the
+
+ PropBank
+
+ annota-
+
+tion
+
+ for
+
+ “The
+
+ window
+
+ br
+
+ok
+
+e
+
+ into
+
+ a
+
+ million
+
+ pieces.
+
+”
+
+,
+
+where
+
+ a
+
+ phrase
+
+ “a
+
+ million
+
+ pieces”
+
+ is
+
+ annotated
+
+ with
+
+ARG3
+
+,
+
+ not
+
+ with
+
+ ARG2
+
+.
+
+ This
+
+ is
+
+ because
+
+ ARG2
+
+ is
+
+reserv
+
+ed
+
+ for
+
+ an
+
+ instrument
+
+ ar
+
+gument
+
+ (e.g.
+
+ “with
+
+ a
+
+rock”).
+
+ Ho
+
+we
+
+v
+
+er
+
+,
+
+ the
+
+ choice
+
+ of
+
+ selecting
+
+ ARG2
+
+ or
+
+ARG3
+
+ for
+
+ “a
+
+ million
+
+ pieces”
+
+ is
+
+ arbitrary
+
+.
+
+ Existing
+
+studies
+
+ e
+
+xploited
+
+ statistical
+
+ methods
+
+ to
+
+ mend
+
+ these
+
+alternations
+
+ and
+
+ arbitrariness.
+
+Basically
+
+,
+
+ deep
+
+ linguistic
+
+ parsers
+
+ deri
+
+v
+
+ed
+
+ from
+
+the
+
+ Penn
+
+ T
+
+reebank
+
+ can
+
+ handle
+
+ syntactic
+
+ alternations
+
+o
+
+wing
+
+ to
+
+ trace
+
+ annotation
+
+ in
+
+ the
+
+ treebank.
+
+ Ho
+
+we
+
+v
+
+er
+
+,
+
+le
+
+xical
+
+ alternations
+
+ and
+
+ arbitrariness
+
+ of
+
+ assignments
+
+of
+
+ ar
+
+gument
+
+ labels
+
+ will
+
+ be
+
+ a
+
+ problem
+
+ when
+
+ we
+
+ di-
+
+rectly
+
+ compare
+
+ the
+
+ output
+
+ of
+
+ an
+
+ HPSG
+
+ parser
+
+ with
+
+the
+
+ PropBank.
+
+Ho
+
+we
+
+v
+
+er
+
+,
+
+ we
+
+ can
+
+ see
+
+ that
+
+ the
+
+ remaining
+
+ disagree-
+
+ments
+
+ are
+
+ about
+
+ the
+
+ labels
+
+ of
+
+ ar
+
+gument
+
+ labels.
+
+ In
+
+general,
+
+ we
+
+ can
+
+ assume
+
+ that
+
+ ar
+
+gument
+
+ labels
+
+ can
+
+be
+
+ uniquely
+
+ determined
+
+ if
+
+ a
+
+ syntactic
+
+ class
+
+ of
+
+ the
+
+predicate
+
+ is
+
+ gi
+
+v
+
+en.
+
+3
+
+ In
+
+ the
+
+ e
+
+xample
+
+ gi
+
+v
+
+en
+
+ in
+
+ Sec-
+
+tion
+
+ 2,
+
+ “the
+
+ window”
+
+ al
+
+w
+
+ays
+
+ occurs
+
+ in
+
+ the
+
+ object
+
+position
+
+ when
+
+ “br
+
+ok
+
+e”
+
+ is
+
+ transiti
+
+v
+
+e,
+
+ while
+
+ it
+
+ appears
+
+in
+
+ the
+
+ subject
+
+ position
+
+ when
+
+ it
+
+ is
+
+ intransiti
+
+v
+
+e.
+
+ Since
+
+syntactic
+
+ classes
+
+ are
+
+ e
+
+xpressed
+
+ by
+
+ le
+
+xical
+
+ entries
+
+ in
+
+HPSG,
+
+ this
+
+ indicates
+
+ that
+
+ we
+
+ can
+
+ establish
+
+ a
+
+ unique
+
+mapping
+
+ from
+
+ an
+
+ HPSG
+
+ le
+
+xical
+
+ entry
+
+ into
+
+ PropBank
+
+semantic
+
+ roles.
+
+F
+
+ollo
+
+wing
+
+ this
+
+ idea,
+
+ we
+
+ de
+
+v
+
+eloped
+
+ a
+
+ mapping
+
+from
+
+ HPSG
+
+ ar
+
+gument
+
+ labels
+
+ into
+
+ PropBank
+
+ ar
+
+gu-
+
+ment
+
+ labels.
+
+ This
+
+ mapping
+
+ w
+
+as
+
+ de
+
+v
+
+eloped
+
+ with
+
+ a
+
+v
+
+ery
+
+ simple
+
+ algorithm
+
+ as
+
+ follo
+
+ws.
+
+ W
+
+e
+
+ ﬁrst
+
+ com-
+
+puted
+
+ predicate-ar
+
+gument
+
+ structures
+
+ from
+
+ an
+
+ HPSG
+
+treebank.
+
+ W
+
+e
+
+ then
+
+ compared
+
+ the
+
+ obtained
+
+ predicate-
+
+ar
+
+gument
+
+ structures
+
+ with
+
+ the
+
+ PropBank
+
+ annotations,
+
+and
+
+ for
+
+ each
+
+ pair
+
+ of
+
+ a
+
+ surf
+
+ace
+
+ form
+
+ of
+
+ a
+
+ w
+
+ord
+
+ and
+
+ its
+
+syntactic
+
+ class,
+
+ the
+
+ mapping
+
+ from
+
+ ar
+
+gument
+
+ labels
+
+of
+
+ a
+
+ predicate-ar
+
+gument
+
+ structure
+
+ into
+
+ those
+
+ of
+
+ Prop-
+
+Bank
+
+ w
+
+as
+
+ re
+
+gistered.
+
+ When
+
+ we
+
+ found
+
+ a
+
+ conﬂict,
+
+ that
+
+is,
+
+ multiple
+
+ mappings
+
+ were
+
+ found
+
+ for
+
+ a
+
+ pair
+
+,
+
+ a
+
+ map-
+
+ping
+
+ found
+
+ later
+
+ w
+
+as
+
+ simply
+
+ discarded.
+
+Our
+
+ method
+
+ is
+
+ much
+
+ simpler
+
+ than
+
+ e
+
+xisting
+
+ stud-
+
+ies,
+
+ and
+
+ it
+
+ should
+
+ be
+
+ noted
+
+ that
+
+ PropBank
+
+ w
+
+as
+
+ not
+
+used
+
+ for
+
+ training
+
+ the
+
+ probabilistic
+
+ model
+
+ or
+
+ statis-
+
+tical
+
+ identiﬁer
+
+.
+
+ This
+
+ might
+
+ be
+
+ a
+
+ handicap
+
+ for
+
+ our
+
+e
+
+v
+
+aluation,
+
+ b
+
+ut
+
+ this
+
+ method
+
+ can
+
+ clearly
+
+ sho
+
+w
+
+ the
+
+lo
+
+wer
+
+ bound
+
+ of
+
+ the
+
+ accurac
+
+y
+
+ that
+
+ has
+
+ been
+
+ attained
+
+by
+
+ HPSG
+
+ parsing.
+
+3
+
+There
+
+ e
+
+xist
+
+ some
+
+ e
+
+xceptions
+
+ as
+
+ follo
+
+ws:
+
+“He
+
+ opened
+
+ the
+
+ bottles.
+
+”
+
+“The
+
+ can
+
+ opener
+
+ opens
+
+ the
+
+ bottles.
+
+”
+
+In
+
+ the
+
+ PropBank,
+
+ “he”
+
+ is
+
+ assigned
+
+ ARG0
+
+,
+
+ while
+
+ “the
+
+ can
+
+opener”
+
+ is
+
+ assigned
+
+ ARG2
+
+ (instrument).
+
+penn
+
+prop
+
+#
+
+ w
+
+ords
+
+ 8,539
+
+ 8,496
+
+#
+
+ le
+
+xical
+
+ entry
+
+ template
+
+ 1,106
+
+ 1,178
+
+#
+
+ template
+
+ per
+
+ w
+
+ord
+
+ 3.00
+
+ 3.16
+
+#
+
+ features
+
+ 50,158
+
+ 52,151
+
+Size
+
+ of
+
+ the
+
+ training
+
+ data
+
+ 124
+
+ MB
+
+ 131
+
+ MB
+
+Estimation
+
+ time
+
+ 68
+
+ min
+
+ 51
+
+ min
+
+T
+
+able
+
+ 2:
+
+ Speciﬁcations
+
+ of
+
+ the
+
+ HPSG
+
+ grammar
+
+ and
+
+the
+
+ disambiguation
+
+ model
+
+5
+
+ Experimental
+
+ r
+
+esults
+
+In
+
+ this
+
+ section,
+
+ we
+
+ e
+
+v
+
+aluate
+
+ the
+
+ accurac
+
+y
+
+ of
+
+ HPSG
+
+parsing
+
+ using
+
+ the
+
+ No
+
+v
+
+ember
+
+ 2002
+
+ release
+
+ of
+
+ Prop-
+
+Bank
+
+ (Kingsb
+
+ury
+
+ and
+
+ P
+
+almer
+
+,
+
+ 2002).
+
+ An
+
+ HPSG
+
+grammar
+
+ w
+
+as
+
+ e
+
+xtracted
+
+ from
+
+ Section
+
+ 02-21
+
+ and
+
+ a
+
+disambiguation
+
+ model
+
+ w
+
+as
+
+ trained
+
+ using
+
+ the
+
+ same
+
+data.
+
+ T
+
+able
+
+ 2
+
+ sho
+
+ws
+
+ speciﬁcations
+
+ of
+
+ the
+
+ grammar
+
+and
+
+ the
+
+ disambiguation
+
+ model,
+
+ where
+
+ the
+
+ size
+
+ of
+
+ the
+
+training
+
+ data
+
+ sho
+
+ws
+
+ the
+
+ ﬁle
+
+ size
+
+ of
+
+ a
+
+ compressed
+
+training
+
+ data
+
+ and
+
+ the
+
+ estimation
+
+ time
+
+ represents
+
+ a
+
+user
+
+ time
+
+ required
+
+ for
+
+ estimating
+
+4
+
+.
+
+ W
+
+e
+
+prepared
+
+ tw
+
+o
+
+ grammars
+
+ for
+
+ the
+
+ e
+
+v
+
+aluation:
+
+penn
+
+w
+
+as
+
+ e
+
+xtracted
+
+ from
+
+ the
+
+ Penn
+
+ T
+
+reebank
+
+ with
+
+ the
+
+ orig-
+
+inal
+
+ algorithm
+
+ (Miyao
+
+ et
+
+ al.,
+
+ 2004),
+
+ and
+
+prop
+
+ w
+
+as
+
+e
+
+xtracted
+
+ using
+
+ the
+
+ PropBank
+
+ annotations
+
+ for
+
+ ar
+
+-
+
+gument/modiﬁer
+
+ distinction
+
+ by
+
+ a
+
+ method
+
+ similar
+
+ to
+
+Chen
+
+ and
+
+ Rambo
+
+w
+
+ (2003).
+
+ That
+
+ is,
+
+ constituents
+
+ an-
+
+notated
+
+ with
+
+ ARG
+
+were
+
+ treated
+
+ as
+
+ an
+
+ ar
+
+gument
+
+in
+
+ the
+
+ grammar
+
+ e
+
+xtraction.
+
+ In
+
+penn
+
+,
+
+ prepositional
+
+phrases
+
+ are
+
+ basically
+
+ treated
+
+ as
+
+ modiﬁers
+
+ since
+
+ we
+
+ha
+
+v
+
+e
+
+ no
+
+ cue
+
+ to
+
+ detect
+
+ ar
+
+gument/modiﬁer
+
+ distinc-
+
+tion
+
+ in
+
+ the
+
+ original
+
+ Penn
+
+ T
+
+reebank.
+
+ Section
+
+ 02-21
+
+w
+
+as
+
+ also
+
+ used
+
+ for
+
+ de
+
+v
+
+eloping
+
+ HPSG-to-PropBank
+
+mapping.
+
+ Note
+
+ that
+
+ the
+
+ PropBank
+
+ annotation
+
+ w
+
+as
+
+used
+
+ only
+
+ for
+
+ this
+
+ purpose,
+
+ and
+
+ w
+
+as
+
+ not
+
+ used
+
+ for
+
+training
+
+ a
+
+ statistical
+
+ disambiguation
+
+ model.
+
+ This
+
+ is
+
+v
+
+ery
+
+ dif
+
+ferent
+
+ from
+
+ e
+
+xisting
+
+ methods
+
+ of
+
+ identifying
+
+PropBank-style
+
+ annotations
+
+ where
+
+ the
+
+y
+
+ trained
+
+ the
+
+identiﬁcation
+
+ model
+
+ using
+
+ the
+
+ PropBank.
+
+ In
+
+ the
+
+ fol-
+
+lo
+
+wing,
+
+ Section
+
+ 22
+
+ of
+
+ the
+
+ PropBank
+
+ w
+
+as
+
+ used
+
+ for
+
+the
+
+ de
+
+v
+
+elopment
+
+ of
+
+ the
+
+ parser
+
+,
+
+ while
+
+ Section
+
+ 23
+
+ w
+
+as
+
+used
+
+ for
+
+ the
+
+ ﬁnal
+
+ e
+
+v
+
+aluation.
+
+The
+
+ accurac
+
+y
+
+ of
+
+ HPSG
+
+ parsing
+
+ w
+
+as
+
+ measured
+
+against
+
+ the
+
+ cor
+
+e-ar
+
+gument
+
+ annotations
+
+ (i.e.,
+
+ ARG0
+
+,
+
+...,
+
+ ARG5
+
+)
+
+ of
+
+ the
+
+ PropBank.
+
+ Each
+
+ predicate-
+
+ar
+
+gument
+
+ relation
+
+ output
+
+ by
+
+ the
+
+ parser
+
+ w
+
+as
+
+ rep-
+
+resented
+
+ as
+
+ a
+
+ tuple
+
+,
+
+ where
+
+w
+
+as
+
+ a
+
+ predicate,
+
+w
+
+as
+
+ the
+
+ label
+
+ of
+
+ an
+
+ar
+
+gument
+
+ position
+
+ (i.e.,
+
+ one
+
+ of
+
+ ARG0
+
+,
+
+ ...,
+
+ ARG5
+
+),
+
+and
+
+w
+
+as
+
+ the
+
+ head
+
+ w
+
+ord
+
+ of
+
+ the
+
+ ar
+
+gument
+
+ of
+
+.
+
+Each
+
+ tuple
+
+ w
+
+as
+
+ compared
+
+ to
+
+ the
+
+ annotations
+
+ in
+
+ the
+
+PropBank.
+
+ W
+
+e
+
+ used
+
+ a
+
+ mapping
+
+ table
+
+ described
+
+ in
+
+LP
+
+ LR
+
+ UP
+
+ UR
+
+penn
+
+70.3
+
+ 56.0
+
+ 86.7
+
+ 69.2
+
+prop
+
+68.3
+
+ 59.0
+
+ 85.6
+
+ 73.9
+
+Gold
+
+ par
+
+ses
+
+ 79.5
+
+ 67.1
+
+ 97.2
+
+ 82.0
+
+T
+
+able
+
+ 3:
+
+ Accurac
+
+y
+
+ of
+
+ PropBank
+
+ annotations
+
+(head
+
+ w
+
+ords
+
+ of
+
+ core
+
+ ar
+
+guments,
+
+ without
+
+ HPSG-to-
+
+PropBank
+
+ mapping)
+
+LP
+
+ LR
+
+ UP
+
+ UR
+
+penn
+
+80.3
+
+ 64.1
+
+ 86.7
+
+ 69.2
+
+prop
+
+79.6
+
+ 68.7
+
+ 85.6
+
+ 73.9
+
+Gold
+
+ par
+
+ses
+
+ 91.2
+
+ 76.9
+
+ 97.2
+
+ 82.0
+
+T
+
+able
+
+ 4:
+
+ Accurac
+
+y
+
+ of
+
+ PropBank
+
+ annotations
+
+ (head
+
+w
+
+ords
+
+ of
+
+ core
+
+ ar
+
+guments,
+
+ with
+
+ HPSG-to-PropBank
+
+mapping)
+
+Section
+
+ 4
+
+ for
+
+ mapping
+
+ the
+
+ ar
+
+gument
+
+ labels
+
+ of
+
+ HPSG
+
+into
+
+ the
+
+ PropBank-style.
+
+T
+
+able
+
+ 3
+
+ sho
+
+ws
+
+ the
+
+ accurac
+
+y
+
+ of
+
+ semantic
+
+ ar
+
+gu-
+
+ments
+
+ output
+
+ by
+
+ the
+
+ HPSG
+
+ parser
+
+ without
+
+ map-
+
+ping
+
+ HPSG
+
+ outputs
+
+ to
+
+ PropBank-style,
+
+ while
+
+ T
+
+a-
+
+ble
+
+ 4
+
+ sho
+
+ws
+
+ the
+
+ accurac
+
+y
+
+ with
+
+ the
+
+ HPSG-to-
+
+PropBank
+
+ mapping.
+
+ LP/LR
+
+ columns
+
+ represent
+
+ la-
+
+beled
+
+ precision/recall
+
+ while
+
+ UP/UR
+
+ represent
+
+ unla-
+
+beled
+
+ precision/recall.
+
+ “Labeled”
+
+ here
+
+ means
+
+ the
+
+label
+
+ of
+
+ ar
+
+gument
+
+ positions.
+
+ That
+
+ is,
+
+ a
+
+ predicate-
+
+ar
+
+gument
+
+ relation
+
+ w
+
+as
+
+ judged
+
+ to
+
+ be
+
+ correct
+
+ if
+
+w
+
+as
+
+ correctly
+
+ output.
+
+ “Un-
+
+labeled”
+
+ means
+
+ that
+
+ the
+
+ head
+
+ w
+
+ord
+
+ of
+
+ the
+
+ ar
+
+gument
+
+w
+
+as
+
+ correctly
+
+ output
+
+ re
+
+gardless
+
+ of
+
+ the
+
+ ar
+
+gument
+
+ po-
+
+sition,
+
+ i.e.,
+
+and
+
+were
+
+ correctly
+
+ output.
+
+ The
+
+“Gold
+
+ par
+
+ses”
+
+ ro
+
+w
+
+ represents
+
+ the
+
+ accurac
+
+y
+
+ attained
+
+when
+
+ correct
+
+ HPSG
+
+ deri
+
+v
+
+ations
+
+ are
+
+ gi
+
+v
+
+en.
+
+ That
+
+ is,
+
+it
+
+ represents
+
+ the
+
+ accurac
+
+y
+
+ when
+
+ Section
+
+ 23
+
+ of
+
+ the
+
+HPSG
+
+ treebank
+
+ w
+
+as
+
+ gi
+
+v
+
+en.
+
+ This
+
+ represents
+
+ the
+
+ up-
+
+per
+
+ bound
+
+ of
+
+ this
+
+ measure
+
+ in
+
+ this
+
+ e
+
+v
+
+aluation.
+
+First
+
+ of
+
+ all,
+
+ we
+
+ can
+
+ see
+
+ that
+
+ labeled
+
+ preci-
+
+sion/recall
+
+ signiﬁcantly
+
+ increased
+
+ with
+
+ the
+
+ HPSG-
+
+to-PropBank
+
+ mapping.
+
+ This
+
+ means
+
+ that
+
+ the
+
+ lo
+
+w
+
+ ac-
+
+curac
+
+y
+
+ of
+
+ the
+
+ nai
+
+v
+
+e
+
+ e
+
+v
+
+aluation
+
+ (T
+
+able
+
+ 3)
+
+ w
+
+as
+
+ mainly
+
+due
+
+ to
+
+ the
+
+ disagreements
+
+ of
+
+ the
+
+ representation
+
+ of
+
+ se-
+
+mantic
+
+ structures.
+
+As
+
+ sho
+
+wn
+
+ in
+
+ T
+
+able
+
+ 4,
+
+ despite
+
+ not
+
+ emplo
+
+ying
+
+ the
+
+PropBank
+
+ for
+
+ the
+
+ machine
+
+ learning
+
+ of
+
+ a
+
+ disambigua-
+
+tion
+
+ model,
+
+ the
+
+ labeled
+
+ precision/recall
+
+ attained
+
+ by
+
+prop
+
+ were
+
+ superior
+
+ to
+
+ an
+
+ e
+
+xisting
+
+ study
+
+ using
+
+the
+
+ Collins
+
+ parser
+
+ (75.9/69.6)
+
+ (Gildea
+
+ and
+
+ Hock-
+
+enmaier
+
+,
+
+ 2003),
+
+ and
+
+ the
+
+ results
+
+ were
+
+ approaching
+
+e
+
+xisting
+
+ studies
+
+ on
+
+ the
+
+ same
+
+ task
+
+ using
+
+ a
+
+ CCG
+
+parser
+
+ (76.1/73.5)
+
+ (Gildea
+
+ and
+
+ Hock
+
+enmaier
+
+,
+
+ 2003).
+
+Although
+
+ the
+
+ results
+
+ cannot
+
+ directly
+
+ be
+
+ compared
+
+ with
+
+ another
+
+ w
+
+ork
+
+ using
+
+ L
+
+T
+
+A
+
+G
+
+ (Chen
+
+ and
+
+ Rambo
+
+w
+
+,
+
+2003)
+
+ because
+
+ their
+
+ tar
+
+get
+
+ annotations
+
+ were
+
+ limited
+
+to
+
+ those
+
+ localized
+
+ in
+
+ an
+
+ elementary
+
+ tree,
+
+ consider
+
+-
+
+ing
+
+ that
+
+ their
+
+ tar
+
+get
+
+ annotations
+
+ were
+
+ 87%
+
+ of
+
+ core-
+
+ar
+
+guments,
+
+ our
+
+ results
+
+ are
+
+ competiti
+
+v
+
+e
+
+ with
+
+ their
+
+ re-
+
+sults
+
+ (82.57/71.41).
+
+6
+
+ Conclusion
+
+In
+
+ this
+
+ paper
+
+,
+
+ the
+
+ accurac
+
+y
+
+ of
+
+ HPSG
+
+ parsing
+
+ w
+
+as
+
+e
+
+v
+
+aluated
+
+ in
+
+ terms
+
+ of
+
+ the
+
+ identiﬁcation
+
+ of
+
+ predicate-
+
+ar
+
+gument
+
+ relations.
+
+ By
+
+ assuming
+
+ unique
+
+ mapping
+
+from
+
+ HPSG
+
+ predicate
+
+ ar
+
+gument
+
+ structures
+
+ into
+
+ the
+
+PropBank
+
+ annotation
+
+ of
+
+ semantic
+
+ ar
+
+guments,
+
+ we
+
+could
+
+ directly
+
+ compare
+
+ the
+
+ output
+
+ of
+
+ an
+
+ HPSG
+
+parser
+
+ with
+
+ PropBank.
+
+ Despite
+
+ not
+
+ using
+
+ Prop-
+
+Bank
+
+ for
+
+ the
+
+ training
+
+ of
+
+ a
+
+ disambiguation
+
+ model,
+
+the
+
+ HPSG
+
+ parser
+
+ achie
+
+v
+
+ed
+
+ a
+
+ high
+
+ accurac
+
+y
+
+ compet-
+
+iti
+
+v
+
+e
+
+ with
+
+ the
+
+ pre
+
+vious
+
+ studies
+
+ on
+
+ the
+
+ identiﬁcation
+
+of
+
+ PropBank
+
+ annotations.
+
+ This
+
+ result
+
+ re
+
+v
+
+eals
+
+ the
+
+ ac-
+
+curate
+
+ identiﬁcation
+
+ of
+
+ predicate-ar
+
+gument
+
+ relations
+
+by
+
+ HPSG
+
+ parsing.
+
+Although
+
+ this
+
+ study
+
+ directly
+
+ compared
+
+ the
+
+ HPSG
+
+output
+
+ with
+
+ PropBank,
+
+ we
+
+ may
+
+ require
+
+ an
+
+ addi-
+
+tional
+
+ machine
+
+ learning
+
+ step
+
+ as
+
+ in
+
+ the
+
+ e
+
+xisting
+
+ stud-
+
+ies
+
+ to
+
+ obtain
+
+ higher
+
+ accurac
+
+y
+
+ because
+
+ the
+
+ accu-
+
+rac
+
+y
+
+ attained
+
+ by
+
+ gold
+
+ parses
+
+ sho
+
+wed
+
+ a
+
+ limitation
+
+of
+
+ our
+
+ approach.
+
+ Another
+
+ possibility
+
+ is
+
+ to
+
+ directly
+
+e
+
+xtract
+
+ PropBank-style
+
+ semantic
+
+ representations
+
+ by
+
+reforming
+
+ the
+
+ grammar
+
+ e
+
+xtraction
+
+ algorithm
+
+ (Chen
+
+and
+
+ Rambo
+
+w
+
+,
+
+ 2003),
+
+ and
+
+ to
+
+ estimate
+
+ a
+
+ disambigua-
+
+tion
+
+ model
+
+ using
+
+ the
+
+ PropBank.
+
+Refer
+
+ences
+
+Ste
+
+v
+
+en
+
+ P
+
+.
+
+ Abne
+
+y
+
+.
+
+ 1997.
+
+ Stochastic
+
+ attrib
+
+ute-v
+
+alue
+
+grammars.
+
+ Computational
+
+ Linguistics
+
+,
+
+ 23(4).
+
+Collin
+
+ F
+
+.
+
+ Bak
+
+er
+
+,
+
+ Charles
+
+ J.
+
+ Fillmore,
+
+ and
+
+ John
+
+ B.
+
+Lo
+
+we.
+
+ 1998.
+
+ The
+
+ Berk
+
+ele
+
+y
+
+ FrameNet
+
+ project.
+
+ In
+
+Pr
+
+oc.
+
+ COLING/A
+
+CL
+
+ 1998
+
+,
+
+ pages
+
+ 86–90.
+
+Adam
+
+ L.
+
+ Ber
+
+ger
+
+,
+
+ Stephen
+
+ A.
+
+ Della
+
+ Pietra,
+
+ and
+
+ V
+
+in-
+
+cent.
+
+ J.
+
+ Della
+
+ Pietra.
+
+ 1996.
+
+ A
+
+ maximum
+
+ entrop
+
+y
+
+approach
+
+ to
+
+ natural
+
+ language
+
+ processing.
+
+ Com-
+
+putational
+
+ Linguistics
+
+,
+
+ 22(1):39–71.
+
+Joan
+
+ Bresnan,
+
+ editor
+
+.
+
+ 1982.
+
+ The
+
+ Mental
+
+ Repr
+
+e-
+
+sentation
+
+ of
+
+ Gr
+
+ammatical
+
+ Relations
+
+.
+
+ MIT
+
+ Press,
+
+Cambridge,
+
+ MA.
+
+Michael
+
+ Burk
+
+e,
+
+ Aoife
+
+ Cahill,
+
+ Ruth
+
+ O’Dono
+
+v
+
+an,
+
+Josef
+
+ v
+
+an
+
+ Genabith,
+
+ and
+
+ Andy
+
+ W
+
+ay
+
+.
+
+ 2004.
+
+T
+
+reebank-based
+
+ acquisition
+
+ of
+
+ wide-co
+
+v
+
+erage,
+
+probabilistic
+
+ LFG
+
+ resources:
+
+ Project
+
+ o
+
+v
+
+ervie
+
+w
+
+,
+
+results
+
+ and
+
+ e
+
+v
+
+aluation.
+
+ In
+
+ Pr
+
+oc.
+
+ IJCNLP-04
+
+W
+
+orkshop
+
+ “Be
+
+yond
+
+ Shallow
+
+ Analyses”
+
+.
+
+Aoife
+
+ Cahill,
+
+ Mairead
+
+ McCarthy
+
+,
+
+ Josef
+
+ v
+
+an
+
+ Gen-
+
+abith,
+
+ and
+
+ Andy
+
+ W
+
+ay
+
+.
+
+ 2002.
+
+ P
+
+arsing
+
+ with
+
+ PCFGs
+
+and
+
+ automatic
+
+ f-structure
+
+ annotation.
+
+ In
+
+ Pr
+
+oc.
+
+ 7th
+
+International
+
+ Le
+
+xical-Functional
+
+ Gr
+
+ammar
+
+ Con-
+
+fer
+
+ence
+
+.
+
+Eugene
+
+ Charniak.
+
+ 2000.
+
+ A
+
+ maximum-entrop
+
+y-
+
+inspired
+
+ parser
+
+.
+
+ In
+
+ Pr
+
+oc.
+
+ N
+
+AA
+
+CL-2000
+
+,
+
+ pages
+
+132–139.
+
+John
+
+ Chen
+
+ and
+
+ Owen
+
+ Rambo
+
+w
+
+.
+
+ 2003.
+
+ Use
+
+ of
+
+ deep
+
+linguistic
+
+ features
+
+ for
+
+ the
+
+ recognition
+
+ and
+
+ label-
+
+ing
+
+ of
+
+ semantic
+
+ ar
+
+guments.
+
+ In
+
+ Pr
+
+oc.
+
+ EMNLP
+
+2003
+
+.
+
+John
+
+ Chen
+
+ and
+
+ K.
+
+ V
+
+ijay-Shank
+
+er
+
+.
+
+ 2000.
+
+ Automated
+
+e
+
+xtraction
+
+ of
+
+ T
+
+A
+
+Gs
+
+ from
+
+ the
+
+ Penn
+
+ T
+
+reebank.
+
+ In
+
+Pr
+
+oc.
+
+ 6th
+
+ IWPT
+
+.
+
+Da
+
+vid
+
+ Chiang.
+
+ 2000.
+
+ Statistical
+
+ parsing
+
+ with
+
+ an
+
+automatically-e
+
+xtracted
+
+ tree
+
+ adjoining
+
+ grammar
+
+.
+
+In
+
+ Pr
+
+oc.
+
+ 38th
+
+ A
+
+CL
+
+,
+
+ pages
+
+ 456–463.
+
+Stephen
+
+ Clark
+
+ and
+
+ James
+
+ R.
+
+ Curran.
+
+ 2003.
+
+ Log-
+
+linear
+
+ models
+
+ for
+
+ wide-co
+
+v
+
+erage
+
+ CCG
+
+ parsing.
+
+ In
+
+Pr
+
+oc.
+
+ EMNLP
+
+ 2003
+
+,
+
+ pages
+
+ 97–104.
+
+Stephen
+
+ Clark,
+
+ Julia
+
+ Hock
+
+enmaier
+
+,
+
+ and
+
+ Mark
+
+ Steed-
+
+man.
+
+ 2002.
+
+ Building
+
+ deep
+
+ dependenc
+
+y
+
+ structures
+
+with
+
+ a
+
+ wide-co
+
+v
+
+erage
+
+ CCG
+
+ parser
+
+.
+
+ In
+
+ Pr
+
+oc.
+
+ 40th
+
+A
+
+CL
+
+,
+
+ pages
+
+ 327–334.
+
+Michael
+
+ Collins.
+
+ 1999.
+
+ Head-Driven
+
+ Statistical
+
+Models
+
+ for
+
+ Natur
+
+al
+
+ Langua
+
+g
+
+e
+
+ P
+
+ar
+
+sing
+
+.
+
+ Ph.D.
+
+thesis,
+
+ Uni
+
+v
+
+.
+
+ of
+
+ Pennsylv
+
+ania.
+
+Anette
+
+ Frank,
+
+ Louisa
+
+ Sadler
+
+,
+
+ Josef
+
+ v
+
+an
+
+ Genabith,
+
+and
+
+ Andy
+
+ W
+
+ay
+
+.
+
+ 2003.
+
+ From
+
+ treebank
+
+ resources
+
+to
+
+ LFG
+
+ f-structures:
+
+ Automatic
+
+ f-structure
+
+ an-
+
+notation
+
+ of
+
+ treebank
+
+ trees
+
+ and
+
+ CFGs
+
+ e
+
+xtracted
+
+from
+
+ treebanks.
+
+ In
+
+ Anne
+
+ Abeille,
+
+ editor
+
+,
+
+ Build-
+
+ing
+
+ and
+
+ Using
+
+ Syntactically
+
+ Annotated
+
+ Corpor
+
+a
+
+,
+
+pages
+
+ 367–389.
+
+ Kluwer
+
+ Academic
+
+ Publishers.
+
+Stuart
+
+ Geman
+
+ and
+
+ Mark
+
+ Johnson.
+
+ 2002.
+
+ Dy-
+
+namic
+
+ programming
+
+ for
+
+ parsing
+
+ and
+
+ estimation
+
+ of
+
+stochastic
+
+ uniﬁcation-based
+
+ grammars.
+
+ In
+
+ Pr
+
+oc.
+
+40th
+
+ A
+
+CL
+
+,
+
+ pages
+
+ 279–286.
+
+Daniel
+
+ Gildea
+
+ and
+
+ Julia
+
+ Hock
+
+enmaier
+
+.
+
+ 2003.
+
+ Iden-
+
+tifying
+
+ semantic
+
+ roles
+
+ using
+
+ Combinatory
+
+ Cate-
+
+gorial
+
+ Grammar
+
+.
+
+ In
+
+ Pr
+
+oc.
+
+ EMNLP
+
+ 2003
+
+.
+
+Daniel
+
+ Gildea
+
+ and
+
+ Daniel
+
+ Jurafsk
+
+y
+
+.
+
+ 2002.
+
+ Auto-
+
+matic
+
+ labeling
+
+ of
+
+ semantic
+
+ roles.
+
+ Computational
+
+Linguistics
+
+,
+
+ 28(3):245–288.
+
+Daniel
+
+ Gildea
+
+ and
+
+ Martha
+
+ P
+
+almer
+
+.
+
+ 2002.
+
+ The
+
+ ne-
+
+cessity
+
+ of
+
+ parsing
+
+ for
+
+ predicate
+
+ ar
+
+gument
+
+ recog-
+
+nition.
+
+ In
+
+ Pr
+
+oc.
+
+ 40th
+
+ A
+
+CL
+
+.
+
+Julia
+
+ Hock
+
+enmaier
+
+ and
+
+ Mark
+
+ Steedman.
+
+ 2002a.
+
+Acquiring
+
+ compact
+
+ le
+
+xicalized
+
+ grammars
+
+ from
+
+ a
+
+cleaner
+
+ treebank.
+
+ In
+
+ Pr
+
+oc.
+
+ 3r
+
+d
+
+ LREC
+
+.
+
+Julia
+
+ Hock
+
+enmaier
+
+ and
+
+ Mark
+
+ Steedman.
+
+ 2002b
+
+.
+
+Generati
+
+v
+
+e
+
+ models
+
+ for
+
+ statistical
+
+ parsing
+
+ with
+
+Combinatory
+
+ Cate
+
+gorial
+
+ Grammar
+
+.
+
+ In
+
+ Pr
+
+oc.
+
+ 40th
+
+A
+
+CL
+
+,
+
+ pages
+
+ 335–342.
+
+Julia
+
+ Hock
+
+enmaier
+
+.
+
+ 2003.
+
+ P
+
+arsing
+
+ with
+
+ generati
+
+v
+
+e
+
+ models
+
+ of
+
+ predicate-ar
+
+gument
+
+ structure.
+
+ In
+
+ Pr
+
+oc.
+
+41st
+
+ A
+
+CL
+
+,
+
+ pages
+
+ 359–366.
+
+Mark
+
+ Johnson,
+
+ Stuart
+
+ Geman,
+
+ Stephen
+
+ Canon,
+
+Zhiyi
+
+ Chi,
+
+ and
+
+ Stef
+
+an
+
+ Riezler
+
+.
+
+ 1999.
+
+ Estimators
+
+for
+
+ stochastic
+
+ “uniﬁcation-based”
+
+ grammars.
+
+ In
+
+Pr
+
+oc.
+
+ A
+
+CL
+
+ ’99
+
+,
+
+ pages
+
+ 535–541.
+
+P
+
+aul
+
+ Kingsb
+
+ury
+
+ and
+
+ Martha
+
+ P
+
+almer
+
+.
+
+ 2002.
+
+ From
+
+T
+
+reebank
+
+ to
+
+ PropBank.
+
+ In
+
+ Pr
+
+oc.
+
+ 3r
+
+d
+
+ LREC
+
+.
+
+Robert
+
+ Malouf
+
+ and
+
+ Gertjan
+
+ v
+
+an
+
+ Noord.
+
+ 2004.
+
+ W
+
+ide
+
+co
+
+v
+
+erage
+
+ parsing
+
+ with
+
+ stochastic
+
+ attrib
+
+ute
+
+ v
+
+alue
+
+grammars.
+
+ In
+
+ Pr
+
+oc.
+
+ IJCNLP-04
+
+ W
+
+orkshop
+
+ “Be-
+
+yond
+
+ Shallow
+
+ Analyses”
+
+.
+
+Mitchell
+
+ Marcus,
+
+ Grace
+
+ Kim,
+
+ Mary
+
+ Ann
+
+Marcinkie
+
+wicz,
+
+ Robert
+
+ MacIntyre,
+
+ Ann
+
+ Bies,
+
+Mark
+
+ Fer
+
+guson,
+
+ Karen
+
+ Katz,
+
+ and
+
+ Britta
+
+ Schas-
+
+ber
+
+ger
+
+.
+
+ 1994.
+
+ The
+
+ Penn
+
+ T
+
+reebank:
+
+ Annotating
+
+predicate
+
+ ar
+
+gument
+
+ structure.
+
+ In
+
+ ARP
+
+A
+
+ Human
+
+Langua
+
+g
+
+e
+
+ T
+
+ec
+
+hnolo
+
+gy
+
+ W
+
+orkshop
+
+.
+
+Y
+
+usuk
+
+e
+
+ Miyao
+
+ and
+
+ Jun’ichi
+
+ Tsujii.
+
+ 2002.
+
+ Maxi-
+
+mum
+
+ entrop
+
+y
+
+ estimation
+
+ for
+
+ feature
+
+ forests.
+
+ In
+
+Pr
+
+oc.
+
+ HL
+
+T
+
+ 2002
+
+.
+
+Y
+
+usuk
+
+e
+
+ Miyao,
+
+ T
+
+akashi
+
+ Ninomiya,
+
+ and
+
+ Jun’ichi
+
+Tsujii.
+
+ 2003.
+
+ Probabilistic
+
+ modeling
+
+ of
+
+ ar
+
+gument
+
+structures
+
+ including
+
+ non-local
+
+ dependencies.
+
+ In
+
+Pr
+
+oc.
+
+ RANLP
+
+ 2003
+
+,
+
+ pages
+
+ 285–291.
+
+Y
+
+usuk
+
+e
+
+ Miyao,
+
+ T
+
+akashi
+
+ Ninomiya,
+
+ and
+
+ Jun’ichi
+
+Tsujii.
+
+ 2004.
+
+ Corpus-oriented
+
+ grammar
+
+ de
+
+v
+
+elop-
+
+ment
+
+ for
+
+ acquiring
+
+ a
+
+ Head-dri
+
+v
+
+en
+
+ Phrase
+
+ Struc-
+
+ture
+
+ Grammar
+
+ from
+
+ the
+
+ Penn
+
+ T
+
+reebank.
+
+ In
+
+ Pr
+
+oc.
+
+IJCNLP-04
+
+.
+
+Carl
+
+ Pollard
+
+ and
+
+ Iv
+
+an
+
+ A.
+
+ Sag.
+
+ 1994.
+
+ Head-
+
+Driven
+
+ Phr
+
+ase
+
+ Structur
+
+e
+
+ Gr
+
+ammar
+
+.
+
+ Uni
+
+v
+
+ersity
+
+ of
+
+Chicago
+
+ Press.
+
+Stef
+
+an
+
+ Riezler
+
+,
+
+ T
+
+rac
+
+y
+
+ H.
+
+ King,
+
+ Ronald
+
+ M.
+
+ Kaplan,
+
+Richard
+
+ Crouch,
+
+ John
+
+ T
+
+.
+
+ Maxwell
+
+ III,
+
+ and
+
+ Mark
+
+Johnson.
+
+ 2002.
+
+ P
+
+arsing
+
+ the
+
+ Wall
+
+ Street
+
+ Jour
+
+-
+
+nal
+
+ using
+
+ a
+
+ Le
+
+xical-Functional
+
+ Grammar
+
+ and
+
+ dis-
+
+criminati
+
+v
+
+e
+
+ estimation
+
+ techniques.
+
+ In
+
+ Pr
+
+oc.
+
+ 40th
+
+A
+
+CL
+
+.
+
+Yv
+
+es
+
+ Schabes,
+
+ Anne
+
+ Abeill
+
+´
+
+e,
+
+ and
+
+ Ara
+
+vind
+
+ K.
+
+ Joshi.
+
+1988.
+
+ P
+
+arsing
+
+ strate
+
+gies
+
+ with
+
+ ‘le
+
+xicalized’
+
+ gram-
+
+mars:
+
+ Application
+
+ to
+
+ tree
+
+ adjoining
+
+ grammars.
+
+ In
+
+Pr
+
+oc.
+
+ 12th
+
+ COLING
+
+,
+
+ pages
+
+ 578–583.
+
+Mark
+
+ Steedman.
+
+ 2000.
+
+ The
+
+ Syntactic
+
+ Pr
+
+ocess
+
+.
+
+ The
+
+MIT
+
+ Press.
+
+Fei
+
+ Xia.
+
+ 1999.
+
+ Extracting
+
+ tree
+
+ adjoining
+
+ grammars
+
+from
+
+ brack
+
+eted
+
+ corpora.
+
+ In
+
+ Pr
+
+oc.
+
+ 5th
+
+ NLPRS
+
+.

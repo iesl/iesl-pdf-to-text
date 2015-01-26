@@ -274,7 +274,7 @@ relation to be binary. Given a relation
 
  h
 
-r,t
+r, t
 
 i
 
@@ -296,7 +296,7 @@ t
 
  {h
 
-r,t
+r, t
 
 i ∈ }
 
@@ -334,7 +334,7 @@ r,t
 
  h
 
-r,t
+r, t
 
 i
 
@@ -358,7 +358,7 @@ r,t
 
  p
 
-(
+ (
 
 y
 
@@ -378,7 +378,7 @@ a binary random variable that is true iff
 
  h
 
-r,t
+r, t
 
 i
 
@@ -392,7 +392,7 @@ nent Analysis. These models will estimate the conﬁdence in
 
  h
 
-r,t
+r, t
 
 i
 
@@ -416,7 +416,7 @@ r,t
 
  p
 
-(
+ (
 
 y
 
@@ -550,7 +550,7 @@ on based on
 
 the trueness of other similar relations for the same tuple. I
 
-n Collaborative Filtering this is referredas
+n Collaborative Filtering this is referred as
 
 a
 
@@ -782,7 +782,7 @@ t
 
 1
 
-,t
+, t
 
 2
 
@@ -878,7 +878,7 @@ to [7]. The third baseline is SU12, the state-of-the-art Mul
 
 ti-Instance Multi-Label system by [11].
 
-The remaining systems are our neighborhood model (N),the fa
+The remaining systems are our neighborhood model (N), the fa
 
 ctorized model (F), their combination
 
@@ -908,9 +908,9 @@ Total Pattern 329
 
  0.28 0.56 0.50 0.46
 
-ForFreebase relations,we can see that adding pattern clust
+For Freebase relations, we can see that adding pattern clust
 
-er features(and hence in corporating more
+er features (and hence incorporating more
 
 data) helps YA11 to improve over MI09. Likewise, we see that t
 
@@ -926,7 +926,7 @@ atent representations are optimized
 
 directly towards improving prediction performance. Our be
 
-st model, the combinationof N, F and E,
+st model, the combination of N, F and E,
 
 outperforms all other models in terms of total MAP, indicati
 
@@ -1044,7 +1044,7 @@ extraction from the web.
 
  Commun. ACM
 
-, 51(12):68–74,2008.
+, 51(12):68–74, 2008.
 
 3
 
@@ -1076,7 +1076,7 @@ synonyms on the web.
 
  Journal of Artiﬁcial Intelligence Research
 
-, 34:255–296,2009.
+, 34:255–296, 2009.
 
 [7] Limin Yao, Aria Haghighi, Sebastian Riedel, and Andrew M
 

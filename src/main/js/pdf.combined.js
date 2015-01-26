@@ -7514,7 +7514,7 @@ var SVGGraphics = (function SVGGraphicsClosure() {
       var spellings = [];
       var dists = [];
 
-      var spaceNum = 200;
+      var spaceNum = 150;
 
       if (this.lastEndX) {
         if ((current.x - this.lastEndX) > spaceNum * textHScale * fontSize * 0.001) {
