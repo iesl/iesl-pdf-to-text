@@ -39,7 +39,7 @@ define(function(require) {
 
 
     //require('../../../../pdf.js-versions/pdf.js-iesl/build/singlefile/build/pdf.combined.js');
-    function renderPdfToSVG(outputPath, data) {
+    function renderPdfToSVG(outputPath, data, keepAllFonts) {
 
         var jsdom = require('jsdom');
 
@@ -78,11 +78,7 @@ define(function(require) {
                     return Promise.resolve(page.getOperatorList().then(function (opList) {
                         var svgGfx = new PDFJS.SVGGraphics(page.commonObjs, page.objs);
 
-                        if (pageNum == 1) {
-                          svgGfx.embedFonts = true;
-                        } else {
-                          svgGfx.embedFonts = false;
-                        }
+                        svgGfx.embedFonts = (pageNum == 1 || keepAllFonts);
 
                         return svgGfx.getSVG(opList, viewport).then(function(svgPage) {
                           svgBookAcc[pageNum] = svgPage;

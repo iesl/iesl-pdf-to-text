@@ -9,9 +9,10 @@ define(function(require) {
 
     options
         .version('1.0')
-        .option('--svg [input-pdf] [output-svg]', 'Emit SVG; requires input and output')
+        .option('--svg', 'Emit SVG; requires input and output')
         .option('-i, --input [input-pdf]', 'pdf input filename')
         .option('-o, --output [output-svg]', 'svg output filename')
+        .option('-f, --embedfont', 'flag to keep all font information in svg')
         .parse(process.argv);
 
     // Loading file from file system into typed array
@@ -21,7 +22,7 @@ define(function(require) {
     if (options.meta) {
     } else if (options.svg) {
         p2x = require('./pdfToSvg');
-        p2x.render(options.output, data);
+        p2x.render(options.output, data, options['embedfont'] || false);
     } else {
         options.help();
     }
