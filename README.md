@@ -11,6 +11,11 @@ Convert PDF to SVG
   bin/run.js --svg -i /path/to/input.pdf -o /path/to/output.svg
 ```
 
+Run with -f to keep all font information
+```bash
+  bin/run.js --svg -f -i /path/to/input.pdf -o /path/to/output.svg
+```
+
 Convert PDF to SVG and extract tspan text
 -----------------------------------------
 ```bash
