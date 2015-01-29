@@ -16,10 +16,9 @@ import org.jdom2.util.IteratorIterable
 import org.jdom2.input.SAXBuilder
 
 import scala.io.Source
+import scala.sys.process._
 
 import org.scalatest._
-
-import scala.sys.process._
 
 class PdfToSvgTest extends FlatSpec {
 
@@ -30,12 +29,6 @@ class PdfToSvgTest extends FlatSpec {
   def resourceOutputPath = {
     getClass.getResource("/output").getPath() + "/"
   }
-
-  def build(builder: SAXBuilder)(fullPath: String) = {
-    builder.build(new File(fullPath))
-  }
-
-  val mkDom = build(new SAXBuilder()) _
 
   def getListFromPath(file: File) = {
      val s = Source.fromFile(file)
@@ -54,16 +47,11 @@ class PdfToSvgTest extends FlatSpec {
      items
   }
 
-  private def getTspanSeq(dom: Document): Seq[Element] = {
-    dom.getRootElement().getDescendants(new ElementFilter("tspan")).toIterable.filter(e => {
-      e.getText().size > 0
-    }).toIndexedSeq
-  }
 
   def mkOutputSvgDom(inputPath: String): (Document) = {
     val inputName = inputPath.stripPrefix(resourceInputPath)
     val actualSvgPath = resourceOutputPath + inputName + ".actual.svg"
-    assert(0 == Seq("bin/run.js", "--svg", "-i", inputPath, "-o", actualSvgPath).!)
+    runPdfToSvg(inputPath, actualSvgPath)
     mkDom(actualSvgPath) 
   }
 
