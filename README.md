@@ -3,6 +3,11 @@ PDF to XML converter
 
 Based on Mozilla's pdf.js.
 
+Installation
+------------
+Requires node, npm, libcairo-dev, libpango-dev, libjpeg-dev, libgif-dev
+From the root directory
+
 + SVG expanded syntax      
       
 Convert PDF to SVG
@@ -27,3 +32,11 @@ Test
 ```bash
  sbt test 
 ```
+
+
+
+Jun’ichi Tsujii
+Department of Computer Science
+University of Tokyo
+CREST, JST
+tsujii@is.s.u-tokyo.ac.jp
