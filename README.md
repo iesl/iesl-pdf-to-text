@@ -6,7 +6,9 @@ Based on Mozilla's pdf.js.
 Installation
 ------------
 Requires node, npm, libcairo-dev, libpango-dev, libjpeg-dev, libgif-dev
-From the root directory
+
+After installing system deps (e.g., from ubuntu, apt-get install libcairo-dev, etc.), run "npm install" from project root directory.
+
 
 + SVG expanded syntax      
       
@@ -32,11 +34,3 @@ Test
 ```bash
  sbt test 
 ```
-
-
-
-Jun’ichi Tsujii
-Department of Computer Science
-University of Tokyo
-CREST, JST
-tsujii@is.s.u-tokyo.ac.jp
