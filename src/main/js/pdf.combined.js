@@ -2765,23 +2765,23 @@ var WorkerTransport = (function WorkerTransportClosure() {
             var size = width * height;
             var rgbaLength = size * 4;
             var buf = new Uint8Array(size * components);
-            var tmpCanvas = createScratchCanvas(width, height);
-            var tmpCtx = tmpCanvas.getContext('2d');
-            tmpCtx.drawImage(img, 0, 0);
-            var data = tmpCtx.getImageData(0, 0, width, height).data;
-            var i, j;
+            //var tmpCanvas = createScratchCanvas(width, height);
+            //var tmpCtx = tmpCanvas.getContext('2d');
+            //tmpCtx.drawImage(img, 0, 0);
+            //var data = tmpCtx.getImageData(0, 0, width, height).data;
+            //var i, j;
 
-            if (components === 3) {
-              for (i = 0, j = 0; i < rgbaLength; i += 4, j += 3) {
-                buf[j] = data[i];
-                buf[j + 1] = data[i + 1];
-                buf[j + 2] = data[i + 2];
-              }
-            } else if (components === 1) {
-              for (i = 0, j = 0; i < rgbaLength; i += 4, j++) {
-                buf[j] = data[i];
-              }
-            }
+            //if (components === 3) {
+            //  for (i = 0, j = 0; i < rgbaLength; i += 4, j += 3) {
+            //    buf[j] = data[i];
+            //    buf[j + 1] = data[i + 1];
+            //    buf[j + 2] = data[i + 2];
+            //  }
+            //} else if (components === 1) {
+            //  for (i = 0, j = 0; i < rgbaLength; i += 4, j++) {
+            //    buf[j] = data[i];
+            //  }
+            //}
             resolve({ data: buf, width: width, height: height});
           };
           img.onerror = function () {
