@@ -7311,67 +7311,67 @@ var SVGGraphics = (function SVGGraphicsClosure() {
             this.setMiterLimit(args[0]);
             break;
           case OPS.setFillRGBColor:
-            this.setFillRGBColor(args[0], args[1], args[2]);
+            //this.setFillRGBColor(args[0], args[1], args[2]);
             break;
           case OPS.setStrokeRGBColor:
-            this.setStrokeRGBColor(args[0], args[1], args[2]);
+            //this.setStrokeRGBColor(args[0], args[1], args[2]);
             break;
           case OPS.setDash:
-            this.setDash(args[0], args[1]);
+            //this.setDash(args[0], args[1]);
             break;
           case OPS.setGState:
             this.setGState(args[0]);
             break;
           case OPS.fill:
-            this.fill();
+            //this.fill();
             break;
           case OPS.eoFill:
-            this.eoFill();
+            //this.eoFill();
             break;
           case OPS.stroke:
-            this.stroke();
+            //this.stroke();
             break;
           case OPS.fillStroke:
-            this.fillStroke();
+            //this.fillStroke();
             break;
           case OPS.eoFillStroke:
-            this.eoFillStroke();
+            //this.eoFillStroke();
             break;
           case OPS.clip:
-            this.clip('nonzero');
+            //this.clip('nonzero');
             break;
           case OPS.eoClip:
-            this.clip('evenodd');
+            //this.clip('evenodd');
             break;
           case OPS.paintSolidColorImageMask:
-            this.paintSolidColorImageMask();
+            //this.paintSolidColorImageMask();
             break;
           case OPS.paintJpegXObject:
-            this.paintJpegXObject(args[0], args[1], args[2]);
+            //this.paintJpegXObject(args[0], args[1], args[2]);
             break;
           case OPS.paintImageXObject:
-            this.paintImageXObject(args[0]);
+            //this.paintImageXObject(args[0]);
             break;
           case OPS.paintInlineImageXObject:
-            this.paintInlineImageXObject(args[0]);
+            //this.paintInlineImageXObject(args[0]);
             break;
           case OPS.paintImageMaskXObject:
-            this.paintImageMaskXObject(args[0]);
+            //this.paintImageMaskXObject(args[0]);
             break;
           case OPS.paintFormXObjectBegin:
-            this.paintFormXObjectBegin(args[0], args[1]);
+            //this.paintFormXObjectBegin(args[0], args[1]);
             break;
           case OPS.paintFormXObjectEnd:
-            this.paintFormXObjectEnd();
+            //this.paintFormXObjectEnd();
             break;
           case OPS.closePath:
-            this.closePath();
+            //this.closePath();
             break;
           case OPS.closeStroke:
-            this.closeStroke();
+            //this.closeStroke();
             break;
           case OPS.closeFillStroke:
-            this.closeFillStroke();
+            //this.closeFillStroke();
             break;
           case OPS.nextLine:
             this.nextLine();
@@ -7381,10 +7381,10 @@ var SVGGraphics = (function SVGGraphicsClosure() {
                            args[4], args[5]);
             break;
           case OPS.constructPath:
-            this.constructPath(args[0], args[1]);
+            //this.constructPath(args[0], args[1]);
             break;
           case OPS.endPath:
-            this.endPath();
+            //this.endPath();
             break;
           case 92:
             this.group(opTree[x].items);
