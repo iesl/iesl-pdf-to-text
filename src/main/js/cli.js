@@ -18,7 +18,7 @@ define(function(require) {
     // Loading file from file system into typed array
     var data = new Uint8Array(fs.readFileSync(options.input));
 
-    var p2x; 
+    var p2x;
     if (options.meta) {
     } else if (options.svg) {
         p2x = require('./pdfToSvg');
@@ -28,4 +28,3 @@ define(function(require) {
     }
 
 });
-

@@ -10,7 +10,7 @@ define(function(require) {
     // Dumps svg outputs to a folder called svgdump
     function writeToFile(svgdump, svgPath) {
       fs.writeFile(
-        svgPath, 
+        svgPath,
         svgdump,
         function(err) {
             if (err) {
@@ -44,7 +44,7 @@ define(function(require) {
         var jsdom = require('jsdom');
 
         var PRJ_ROOT = process.cwd();
-        
+
         jsdom.env('<p></p>', [
         ], function (errors, window) {
 
@@ -109,7 +109,7 @@ define(function(require) {
                     return parseFloat(arr[5].slice(0, arr.length - 1));
                   } else {
                     throw new Error('String has incorrect format: '+ svgMatrix +'. should be: matrix(0 0 0 0 0 0)');
-                  } 
+                  }
 
                 };
 
@@ -140,7 +140,7 @@ define(function(require) {
                     return arr.join(" ");
                   })();
 
-                  svgPageChild.setAttributeNS(null, 'transform', _svgPageChildTransform); 
+                  svgPageChild.setAttributeNS(null, 'transform', _svgPageChildTransform);
 
                   combinedSvgAcc.setAttributeNS(null, 'height', totalHeight + "px");
                   var _viewBox = (function() {
@@ -156,9 +156,9 @@ define(function(require) {
                 }, _.head(svgPages));
 
                 writeToFile(combinedSvg.toString(), outputPath);
-                
+
               });
-            
+
             }).then(function () {
                 console.log('# End of Document');
             }, function (err) {
