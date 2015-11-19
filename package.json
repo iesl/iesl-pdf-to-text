@@ -1,21 +1,21 @@
 {
-  "name": "serverside.pdf.js",
-  "version": "1.0.0",
-  "description": "mozilla pdf.js hosted on node w/canvas",
-  "private": true,
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "amdefine": "^0.1.0",
-    "canvas": "^1.1.6",
-    "chalk": "^0.5.1",
-    "commander": "^2.3.0",
-    "jsdom": "^1.0.3",
-    "requirejs": "^2.1.15",
-    "underscore": "^1.7.0"
-  }
+    "name": "serverside.pdf.js",
+    "version": "1.0.0",
+    "description": "mozilla pdf.js hosted on node w/canvas",
+    "private": true,
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "amdefine": "^0.1.0",
+        "canvas": "^1.1.6",
+        "chalk": "^0.5.1",
+        "commander": "^2.3.0",
+        "jsdom": "^1.0.3",
+        "requirejs": "^2.1.15",
+        "underscore": "^1.7.0"
+    }
 }

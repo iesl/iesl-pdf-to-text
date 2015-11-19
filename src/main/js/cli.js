@@ -5,26 +5,22 @@ if (typeof define !== 'function') {
 define(function(require) {
 
     var options = require('commander');
-    var fs = require('fs');
 
     options
         .version('1.0')
-        .option('--svg', 'Emit SVG; requires input and output')
         .option('-i, --input [input-pdf]', 'pdf input filename')
         .option('-o, --output [output-svg]', 'svg output filename')
         .option('-f, --embedfont', 'flag to keep all font information in svg')
+        .option('-h, --help []', 'print help')
         .parse(process.argv);
 
+    // console.log(options);
+
+    var fs = require('fs');
     // Loading file from file system into typed array
     var data = new Uint8Array(fs.readFileSync(options.input));
 
-    var p2x;
-    if (options.meta) {
-    } else if (options.svg) {
-        p2x = require('./pdfToSvg');
-        p2x.render(options.output, data, options['embedfont'] || false);
-    } else {
-        options.help();
-    }
+    var p2x = require('./pdfToSvg');
+    p2x.render(options.output, data, options['embedfont'] || false);
 
 });

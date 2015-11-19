@@ -64,3 +64,5 @@ lib_managed
 
 #crf model
 *.factorie
+
+zz*
