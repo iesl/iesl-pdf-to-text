@@ -1,0 +1,3 @@
+[submodule "pdf.js/pdf.js@mozilla"]
+	path = pdf.js/pdf.js@mozilla
+	url = git@github.com:mozilla/pdf.js.git
