@@ -1,4 +1,4 @@
-PDF to XML converter 
+PDF to SVG converter
 ===
 
 Based on Mozilla's pdf.js.
@@ -9,8 +9,6 @@ Requires node, npm, libcairo-dev, libpango-dev, libjpeg-dev, libgif-dev
 
 After installing system deps (e.g., from ubuntu, apt-get install libcairo-dev, etc.), run "npm install" from project root directory.
 
-
-+ SVG expanded syntax
 
 ### Mac OS X Yosemite 10.10.3
 Following worked as of 2015-07-29, but YMMV. Based on [Homebrew](http://brew.sh/):
@@ -32,26 +30,14 @@ Following worked as of 2015-07-29, but YMMV. Based on [Homebrew](http://brew.sh/
     * ```cd <repos>/iesl-pdf-to-text/```
     * ```npm install```
 
-      
+
 Convert PDF to SVG
 ------------------
 ```bash
-  bin/run.js --svg -i /path/to/input.pdf -o /path/to/output.svg
+  bin/run.js -i /path/to/input.pdf -o /path/to/output.svg
 ```
 
 Run with -f to keep all font information
 ```bash
-  bin/run.js --svg -f -i /path/to/input.pdf -o /path/to/output.svg
-```
-
-Convert PDF to SVG and extract tspan text
------------------------------------------
-```bash
-  bin/inspect.sh /path/to/input.pdf /path/to/output.svg /path/to/output.txt
-```
-
-Test
-----
-```bash
- sbt test 
+  bin/run.js -f -i /path/to/input.pdf -o /path/to/output.svg
 ```

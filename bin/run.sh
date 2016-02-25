@@ -8,6 +8,6 @@ if [ -z $NODE ]; then
    echo "node not installed, exiting"
    exit 1
 else
-    cd $DIR/..
-    $NODE "src/main/js/cli.js" $*
+    # cd $DIR/..
+    $NODE "$DIR/../src/main/js/cli.js" $*
 fi

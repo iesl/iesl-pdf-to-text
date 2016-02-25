@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PDFJS="../pdf.js-versions/pdf.js@iesl"
+PDFJS="../pdf.js-versions/pdf.js@mozilla"
 
 HERE=$(pwd)
 
