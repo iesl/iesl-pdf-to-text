@@ -6,9 +6,9 @@ import org.jdom2.Document
 import org.jdom2.util.IteratorIterable
 import org.jdom2.input.SAXBuilder
 import java.io.File
-import scala.collection.JavaConversions.iterableAsScalaIterable 
+import scala.collection.JavaConversions.iterableAsScalaIterable
 import scala.sys.process._
-  
+
 package object iesl_pdf_to_text {
 
 

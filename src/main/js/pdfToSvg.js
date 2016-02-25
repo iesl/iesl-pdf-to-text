@@ -1,48 +1,47 @@
 if (typeof define !== 'function') {
-    var define = require('amdefine')(module);
+  var define = require('amdefine')(module);
 }
 
 define(function(require) {
 
-    var fs = require('fs');
-    var _ = require('underscore');
+  var fs = require('fs');
+  var _ = require('underscore');
 
-    // Dumps svg outputs to a folder called svgdump
-    function writeToFile(svgdump, svgPath) {
+  // Dumps svg outputs to a folder called svgdump
+  function writeToFile(svgdump, svgPath) {
 
-      console.log("writing...", svgPath);
-        fs.writeFile(svgPath, svgdump, function(err) {
-            if (err) {
-                console.log('Error: ' + err);
-            } else {
-                console.log('Name: ' + getFileNameFromPath(svgPath));
-            }
-        });
-    }
+    console.log("writing...", svgPath);
+    fs.writeFile(svgPath, svgdump, function(err) {
+      if (err) {
+        console.log('Error: ' + err);
+      } else {
+        console.log('Name: ' + getFileNameFromPath(svgPath));
+      }
+    });
+  }
 
-    // Get filename from the path
+  // Get filename from the path
 
-    function getFileNameFromPath(path) {
-        var index = path.lastIndexOf('/');
-        var extIndex = path.lastIndexOf('.');
-        return path.substring(index , extIndex);
-    }
+  function getFileNameFromPath(path) {
+    var index = path.lastIndexOf('/');
+    var extIndex = path.lastIndexOf('.');
+    return path.substring(index , extIndex);
+  }
 
-    // HACK few hacks to let PDF.js be loaded not as a module in global space.
-    global.window = global;
-    global.navigator = { userAgent: "node" };
-    global.PDFJS = {};
+  // HACK few hacks to let PDF.js be loaded not as a module in global space.
+  global.window = global;
+  global.navigator = { userAgent: "node" };
+  global.PDFJS = {};
 
-    require('./node/domstubs.js');
+  require('./node/domstubs.js');
 
-    PDFJS.workerSrc = true;
-    require('./pdf.combined.js');
+  PDFJS.workerSrc = true;
+  require('./pdf.combined.js');
 
-    // global.DOMParser = require('./node/domparsermock.js').DOMParserMock;
 
   var xmlserializer = require('xmlserializer');
+  var Image = require('canvas').Image;
 
-    //require('../../../../pdf.js-versions/pdf.js-iesl/build/singlefile/build/pdf.combined.js');
   function renderPdfToSVG(outputPath, data, keepAllFonts) {
 
     var jsdom = require('jsdom');
@@ -55,9 +54,9 @@ define(function(require) {
                 'xmlns:svg="http://www.w3.org/2000/svg" />');
 
 
-
     jsdom.env(root, [], function (errors, window) {
 
+      global.Image = Image;
       global.document = window.document;
 
       PDFJS.getDocument(data).then(function (doc) {
@@ -90,11 +89,6 @@ define(function(require) {
 
 
         svgBookPromise.then(function(svgBook) {
-          // for (key in svgBook) {
-          //   var svg = svgBook[key]
-          //   var svgBody = svg.childNodes[0]
-          // }
-
 
           var getYTransformFromSvgMatrix = function(svgMatrix) {
 
@@ -111,16 +105,80 @@ define(function(require) {
             return parseFloat(svgE.attributes.height._nodeValue.toString().slice(0, -2));
           };
 
+          var findWidth = function(svgE) {
+            return parseFloat(svgE.attributes.width._nodeValue.toString().slice(0, -2));
+          };
+
           var findViewBoxY = function(svgE) {
             return parseFloat(svgE.attributes.viewBox._nodeValue.toString().split(" ")[3]);
           };
 
           var svgPages = _.values(svgBook);
+          var firstPage = _.head(svgPages);
+          var emptySvg = firstPage.cloneNode();
+          emptySvg.innerHTML = '';
+
+          // console.log(_.functions(firstPage));
+
+          var defsElem = emptySvg._ownerDocument.createElementNS('svg', 'defs');
+          defsElem.setAttributeNS(null, 'id', 'annotation-boxes');
+
+          var preambleGrp = emptySvg._ownerDocument.createElementNS('svg', 'g');
+
+          emptySvg.appendChild(defsElem);
+          emptySvg.appendChild(preambleGrp);
+          emptySvg.appendChild(firstPage.childNodes[0]);
+
+          var pageBoxStyle = emptySvg._ownerDocument.createElementNS('svg', 'style');
+          // pageBoxStyle.textContent = '/* <![CDATA[ */ .bbox { fill: red; stroke: blue; stroke-width: 1; } /* ]] */';
+          pageBoxStyle.textContent = ' .bbox { fill: none; stroke: blue; stroke-width: 1; } ';
+          pageBoxStyle.setAttributeNS(null, 'id', 'bbox-style');
+          defsElem.appendChild(pageBoxStyle);
+
+
+          var pageNumber = 1;
+          var currY = 0;
+
+          function createBbox(label, x, y, w, h) {
+            var grp = emptySvg._ownerDocument.createElementNS('svg', 'g');
+            var bbox = emptySvg._ownerDocument.createElementNS('svg', 'Rect');
+            grp.appendChild(bbox);
+            grp.setAttributeNS(null, 'id', label);
+
+            bbox.setAttributeNS(null, 'class', 'bbox');
+            bbox.setAttributeNS(null, 'x', ''+x);
+            bbox.setAttributeNS(null, 'y', ''+y);
+            bbox.setAttributeNS(null, 'width', ''+w);
+            bbox.setAttributeNS(null, 'height', ''+h);
+            bbox.setAttributeNS(null, 'style', 'url(#bbox-style)');
+            defsElem.appendChild(grp);
+          };
+
+          var pageBoxRender = emptySvg._ownerDocument.createElementNS('svg', 'use');
+          pageBoxRender.setAttributeNS('xlink', 'xlink:href', '#page-'+pageNumber);
+          preambleGrp.appendChild(pageBoxRender);
+          createBbox("page-1", 0, currY,
+                     findWidth(firstPage),
+                     findHeight(firstPage));
+
+
           var combinedSvg = _.foldl(_.tail(svgPages), function(combinedSvgAcc, svgPage) {
+            pageNumber += 1;
 
-            // console.log("svg page", xmlserializer.serializeToString(svgPage));
+            var pageBoxRender = emptySvg._ownerDocument.createElementNS('svg', 'use');
+            pageBoxRender.setAttributeNS('xlink', 'xlink:href', '#page-'+pageNumber);
+            preambleGrp.appendChild(pageBoxRender);
 
-            var totalHeight = findHeight(combinedSvgAcc) + findHeight(svgPage);
+            var pageHeight = findHeight(svgPage);
+            var pageWidth = findWidth(svgPage);
+
+            console.log('page # ', pageNumber);
+            if (pageNumber > 1) {
+              currY += pageHeight;
+            }
+
+            var combinedHeight = findHeight(combinedSvgAcc);
+            var totalHeight = combinedHeight + pageHeight;
             var totalViewBoxY = findViewBoxY(combinedSvgAcc) + findViewBoxY(svgPage);
             var numChildren = combinedSvgAcc.childNodes.length;
             var accTransform = combinedSvgAcc.childNodes[numChildren - 1].attributes.transform._nodeValue.toString();
@@ -128,9 +186,7 @@ define(function(require) {
             var svgPageChild = svgPage.childNodes[0];
             var svgPageTransform = svgPageChild.attributes.transform._nodeValue.toString();
 
-            // console.log("page", svgPage);
-            // console.log("child", svgPageChild.attributes.transform._nodeValue.toString());
-
+            createBbox("page-"+pageNumber, 0, currY, pageWidth, pageHeight);
 
             var transformOffset = getYTransformFromSvgMatrix(accTransform) + getYTransformFromSvgMatrix(svgPageTransform);
 
@@ -141,6 +197,7 @@ define(function(require) {
             })();
 
             svgPageChild.setAttributeNS(null, 'transform', _svgPageChildTransform);
+            svgPageChild.setAttributeNS(null, 'labels', 'xyz:page');
 
             combinedSvgAcc.setAttributeNS(null, 'height', totalHeight + "px");
             var _viewBox = (function() {
@@ -154,10 +211,15 @@ define(function(require) {
             return combinedSvgAcc;
 
 
-          }, _.head(svgPages));
+          }, emptySvg);
 
           combinedSvg.setAttribute('xmlns:svg',   'http://www.w3.org/2000/svg');
           combinedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+          // combinedSvg.childNodes[0].insertBefore(defsElem);
+          // var a0 = firstPage._ownerDocument.createElementNS('svg', 'use');
+          // a0.setAttributeNS('xlink', 'href', '#svg_page-1');
+          // combinedSvg.childNodes[0].insertBefore(a0);
 
           var xmlString = jsdom.serializeDocument(combinedSvg);
 
@@ -170,7 +232,7 @@ define(function(require) {
         });
 
       }).then(function (a, b, c) {
-        // console.log('# End of Document', a, b, c);
+        //
       }, function (err) {
         console.error('Error: ' + err);
       });
