@@ -139,11 +139,15 @@ define(function(require) {
           var pageNumber = 1;
           var currY = 0;
 
-          function createBbox(label, x, y, w, h) {
+          function createBbox(id, labelName, labelValue, x, y, w, h) {
             var grp = emptySvg._ownerDocument.createElementNS('svg', 'g');
             var bbox = emptySvg._ownerDocument.createElementNS('svg', 'Rect');
             grp.appendChild(bbox);
-            grp.setAttributeNS(null, 'id', label);
+            grp.setAttributeNS(null, 'id', id);
+            grp.setAttributeNS(null, 'label-name', labelName);
+            if (labelValue != undefined) {
+              grp.setAttributeNS(null, 'label-value', labelValue);
+            }
 
             bbox.setAttributeNS(null, 'class', 'bbox');
             bbox.setAttributeNS(null, 'x', ''+x);
@@ -157,7 +161,8 @@ define(function(require) {
           var pageBoxRender = emptySvg._ownerDocument.createElementNS('svg', 'use');
           pageBoxRender.setAttributeNS('xlink', 'xlink:href', '#page-'+pageNumber);
           preambleGrp.appendChild(pageBoxRender);
-          createBbox("page-1", 0, currY,
+          createBbox("page-1", "page", "1",
+                     0, currY,
                      findWidth(firstPage),
                      findHeight(firstPage));
 
@@ -186,7 +191,7 @@ define(function(require) {
             var svgPageChild = svgPage.childNodes[0];
             var svgPageTransform = svgPageChild.attributes.transform._nodeValue.toString();
 
-            createBbox("page-"+pageNumber, 0, currY, pageWidth, pageHeight);
+            createBbox("page-"+pageNumber, "page", pageNumber, 0, currY, pageWidth, pageHeight);
 
             var transformOffset = getYTransformFromSvgMatrix(accTransform) + getYTransformFromSvgMatrix(svgPageTransform);
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 pushd .
-cd pdf.js && node make singlefile
+cd pdf.js/pdf.js@mozilla && npm install
+node make generic
+node make singlefile
 popd
-cp pdf.js/build/singlefile/build/pdf.combined.js ./src/main/js/
-
- 
+cp pdf.js/pdf.js@mozilla/build/singlefile/build/pdf.combined.js ./src/main/js/
