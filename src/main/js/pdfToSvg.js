@@ -37,6 +37,7 @@ define(function(require) {
 
   PDFJS.workerSrc = true;
   require('./pdf.combined.js');
+  // require('./compatibility.js');
 
 
   var xmlserializer = require('xmlserializer');
